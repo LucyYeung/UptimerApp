@@ -89,6 +89,7 @@ export default class MonitorServer {
       }),
     );
     this.graphqlRoute(app);
+    this.healthRoute(app);
   }
 
   private graphqlRoute(app: Express) {
@@ -104,6 +105,12 @@ export default class MonitorServer {
         context: async ({ req, res }) => ({ req, res }),
       }),
     );
+  }
+
+  private healthRoute(app: Express) {
+    app.get('/health', (_req: Request, res: Response) => {
+      res.status(200).send('Uptimer monitor server is healthy and OK.');
+    });
   }
 
   private async startServer() {
