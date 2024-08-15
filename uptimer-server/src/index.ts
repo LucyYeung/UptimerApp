@@ -1,4 +1,5 @@
 import express from 'express';
+
 import MonitorServer from './server/server';
 
 const initializeApp = () => {

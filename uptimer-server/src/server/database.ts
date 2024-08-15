@@ -1,4 +1,5 @@
 import { Sequelize } from 'sequelize';
+
 import { POSTGRES_DB } from './config';
 
 export const sequelize: Sequelize = new Sequelize(POSTGRES_DB, {
