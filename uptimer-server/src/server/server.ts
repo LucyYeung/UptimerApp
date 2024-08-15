@@ -1,17 +1,74 @@
-import { Express, NextFunction, Request, Response } from 'express';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import cookieSession from 'cookie-session';
+import cors from 'cors';
+import {
+  Express,
+  NextFunction,
+  Request,
+  Response,
+  json,
+  urlencoded,
+} from 'express';
 import http from 'http';
-import { PORT } from './config';
+
+import {
+  CLIENT_URL,
+  NODE_ENV,
+  PORT,
+  SECRET_KEY_ONE,
+  SECRET_KEY_TWO,
+} from './config';
+
+const typeDefs = `#graphql
+  type User {
+    username: String
+  }
+
+  type Query {
+    user: User
+  }
+`;
+
+const resolvers = {
+  Query: {
+    user: () => ({ username: 'test' }),
+  },
+};
 
 export default class MonitorServer {
   private app: Express;
   private httpServer: http.Server;
+  private server: ApolloServer;
 
   constructor(app: Express) {
     this.app = app;
     this.httpServer = new http.Server(app);
+    const schema = makeExecutableSchema({ typeDefs, resolvers });
+    this.server = new ApolloServer({
+      schema,
+      introspection: NODE_ENV !== 'production',
+      plugins: [
+        ApolloServerPluginDrainHttpServer({
+          httpServer: this.httpServer,
+        }),
+        NODE_ENV === 'production'
+          ? ApolloServerPluginLandingPageDisabled()
+          : ApolloServerPluginLandingPageLocalDefault({ embed: true }),
+      ],
+    });
   }
 
   async start() {
+    /**
+     * Note that you must call the start() method on the ApolloServer
+     * instance before passing it to the express middleware.
+     */
+    await this.server.start();
     this.standardMiddleware(this.app);
     this.startServer();
   }
@@ -22,6 +79,31 @@ export default class MonitorServer {
       res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
       next();
     });
+    app.use(
+      cookieSession({
+        name: 'session',
+        keys: [SECRET_KEY_ONE, SECRET_KEY_TWO],
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        secure: NODE_ENV !== 'development',
+        ...(NODE_ENV !== 'development' && { sameSite: 'none' }),
+      }),
+    );
+    this.graphqlRoute(app);
+  }
+
+  private graphqlRoute(app: Express) {
+    app.use(
+      '/graphql',
+      cors({
+        origin: CLIENT_URL,
+        credentials: true,
+      }),
+      json({ limit: '200mb' }),
+      urlencoded({ extended: true, limit: '200mb' }),
+      expressMiddleware(this.server, {
+        context: async ({ req, res }) => ({ req, res }),
+      }),
+    );
   }
 
   private async startServer() {
