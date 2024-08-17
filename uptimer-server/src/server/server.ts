@@ -3,6 +3,7 @@ import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
+import { mergedGQLSchema } from '@app/graphql/schema';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import cookieSession from 'cookie-session';
 import cors from 'cors';
@@ -25,16 +26,6 @@ import {
 } from './config';
 import logger from './logger';
 
-const typeDefs = `#graphql
-  type User {
-    username: String
-  }
-
-  type Query {
-    user: User
-  }
-`;
-
 const resolvers = {
   Query: {
     user: () => ({ username: 'test' }),
@@ -49,7 +40,10 @@ export default class MonitorServer {
   constructor(app: Express) {
     this.app = app;
     this.httpServer = new http.Server(app);
-    const schema = makeExecutableSchema({ typeDefs, resolvers });
+    const schema = makeExecutableSchema({
+      typeDefs: mergedGQLSchema,
+      resolvers,
+    });
     this.server = new ApolloServer({
       schema,
       introspection: NODE_ENV !== 'production',
