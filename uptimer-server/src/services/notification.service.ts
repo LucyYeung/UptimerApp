@@ -24,10 +24,10 @@ export const getSingleNotificationGroup = async (notificationId: number) => {
 
 export const getAllNotificationGroup = async (userId: number) => {
   try {
-    const notifications = await NotificationModel.findAll({
+    const notifications = (await NotificationModel.findAll({
       where: { userId },
       order: [['createdAt', 'DESC']],
-    });
+    })) as unknown as INotificationDocument[];
     return notifications;
   } catch (error) {
     throw new Error(error);
