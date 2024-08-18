@@ -1,7 +1,10 @@
+import { INotificationDocument } from '@app/interfaces/notification.interface';
 import { AppContext } from '@app/server/server';
-import { getAllNotificationGroups } from '@app/services/notification.service';
+import {
+  createNotificationGroup,
+  getAllNotificationGroups,
+} from '@app/services/notification.service';
 import { authenticateGraphQLRoute } from '@app/utils/utils';
-import { GraphQLError } from 'graphql';
 
 export const NotificationResovler = {
   Query: {
@@ -19,8 +22,23 @@ export const NotificationResovler = {
           notifications,
         };
       } catch (error) {
-        throw new GraphQLError(error);
+        throw new Error(error);
       }
+    },
+  },
+  Mutation: {
+    createNotificationGroup: async (
+      _: undefined,
+      args: { group: INotificationDocument },
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+
+      const notification = await createNotificationGroup(args.group);
+      return {
+        notifications: [notification],
+      };
     },
   },
 };
