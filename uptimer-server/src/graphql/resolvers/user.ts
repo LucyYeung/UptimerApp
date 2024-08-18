@@ -1,9 +1,9 @@
+import { AppContext } from '@app/interfaces/monitor.interface';
 import { INotificationDocument } from '@app/interfaces/notification.interface';
 import { IUserDocument, IUserResponse } from '@app/interfaces/user.interface';
 import { UserModel } from '@app/models/user.model';
 import { JWT_TOKEN } from '@app/server/config';
 import logger from '@app/server/logger';
-import { AppContext } from '@app/server/server';
 import {
   createNotificationGroup,
   getAllNotificationGroups,

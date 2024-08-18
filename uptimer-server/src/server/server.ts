@@ -6,6 +6,7 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { resolvers } from '@app/graphql/resolvers';
 import { mergedGQLSchema } from '@app/graphql/schema';
+import { AppContext } from '@app/interfaces/monitor.interface';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import cookieSession from 'cookie-session';
 import cors from 'cors';
@@ -27,11 +28,6 @@ import {
   SECRET_KEY_TWO,
 } from './config';
 import logger from './logger';
-
-export interface AppContext {
-  req: Request;
-  res: Response;
-}
 
 export default class MonitorServer {
   private app: Express;
