@@ -10,6 +10,10 @@ import { AppContext } from '@app/interfaces/monitor.interface';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import cookieSession from 'cookie-session';
 import cors from 'cors';
+import dayjs from 'dayjs';
+import customFormat from 'dayjs/plugin/customParseFormat';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import {
   Express,
   NextFunction,
@@ -28,6 +32,10 @@ import {
   SECRET_KEY_TWO,
 } from './config';
 import logger from './logger';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(customFormat);
 
 export default class MonitorServer {
   private app: Express;
