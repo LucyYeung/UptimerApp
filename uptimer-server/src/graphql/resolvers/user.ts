@@ -1,5 +1,6 @@
 import { INotificationDocument } from '@app/interfaces/notification.interface';
-import { IUserDocument } from '@app/interfaces/user.interface';
+import { IUserDocument, IUserResponse } from '@app/interfaces/user.interface';
+import { UserModel } from '@app/models/user.model';
 import { JWT_TOKEN } from '@app/server/config';
 import { AppContext } from '@app/server/server';
 import {
@@ -8,8 +9,10 @@ import {
 } from '@app/services/notification.service';
 import {
   createNewUser,
+  getUserByProp,
   getUserByUserNameOrEmail,
 } from '@app/services/user.service';
+import { isEmail } from '@app/utils/utils';
 import { Request } from 'express';
 import { GraphQLError } from 'graphql';
 import { sign } from 'jsonwebtoken';
@@ -17,6 +20,34 @@ import { toLower, upperFirst } from 'lodash';
 
 export const UserResolver = {
   Mutation: {
+    loginUser: async (
+      _: undefined,
+      args: { username: string; password: string },
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      // TODO: validate
+
+      const { username, password } = args;
+      const isValidEmail = isEmail(username);
+      const type = !isValidEmail ? 'username' : 'email';
+      const existingUser = await getUserByProp(username, type);
+
+      if (!existingUser) {
+        throw new GraphQLError('Invalid credentials');
+      }
+
+      const passwordMatch = await UserModel.prototype.comparePassword(
+        password,
+        existingUser.password!,
+      );
+      if (!passwordMatch) {
+        throw new GraphQLError('Invalid credentials');
+      }
+
+      const response = await userReturnValue(req, existingUser, 'login');
+      return response;
+    },
     registerUser: async (
       _: undefined,
       args: { user: IUserDocument },
@@ -56,7 +87,7 @@ const userReturnValue = async (
   req: Request,
   result: IUserDocument,
   type: string,
-) => {
+): Promise<IUserResponse> => {
   let notifications: INotificationDocument[] = [];
   if (type === 'register' && result && result.id && result.email) {
     const notification = await createNotificationGroup({
