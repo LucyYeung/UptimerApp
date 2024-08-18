@@ -2,6 +2,7 @@ import { INotificationDocument } from '@app/interfaces/notification.interface';
 import { IUserDocument, IUserResponse } from '@app/interfaces/user.interface';
 import { UserModel } from '@app/models/user.model';
 import { JWT_TOKEN } from '@app/server/config';
+import logger from '@app/server/logger';
 import { AppContext } from '@app/server/server';
 import {
   createNotificationGroup,
@@ -13,6 +14,7 @@ import {
   getUserBySocialId,
   getUserByUserNameOrEmail,
 } from '@app/services/user.service';
+import { authenticateGraphQLRoute, isEmail } from '@app/utils/utils';
 import { isEmail } from '@app/utils/utils';
 import { Request } from 'express';
 import { GraphQLError } from 'graphql';
@@ -20,6 +22,27 @@ import { sign } from 'jsonwebtoken';
 import { toLower, upperFirst } from 'lodash';
 
 export const UserResolver = {
+  Query: {
+    checkCurrentUser: async (
+      _: undefined,
+      __: undefined,
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+      logger.info(req.currentUser);
+
+      const { id } = req.currentUser!;
+      const notifications = await getAllNotificationGroup(id);
+      return {
+        user: {
+          ...req.currentUser,
+          createdAt: new Date(),
+        },
+        notifications,
+      };
+    },
+  },
   Mutation: {
     loginUser: async (
       _: undefined,
