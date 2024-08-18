@@ -18,23 +18,27 @@ export const getUserByUserNameOrEmail = async (
   email: string,
 ) => {
   try {
-    const user = await UserModel.findOne({
+    const user = (await UserModel.findOne({
       where: {
         [Op.or]: [
           { username: upperFirst(username) },
           { email: toLower(email) },
         ],
       },
-    });
+    })) as unknown as IUserDocument;
     return user;
   } catch (error) {
     throw new Error(error);
   }
 };
 
-export const getUserBySocialId = async (socialId: string, type: string) => {
+export const getUserBySocialId = async (
+  socialId: string,
+  email: string,
+  type: string,
+) => {
   try {
-    const user = await UserModel.findOne({
+    const user = (await UserModel.findOne({
       where: {
         [Op.or]: [
           {
@@ -42,8 +46,23 @@ export const getUserBySocialId = async (socialId: string, type: string) => {
             ...(type === 'google' && { googleId: socialId }),
           },
         ],
+        email: toLower(email),
       },
-    });
+    })) as unknown as IUserDocument;
+    return user;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+export const getUserByProp = async (prop: string, type: string) => {
+  try {
+    const user = (await UserModel.findOne({
+      where: {
+        ...(type === 'username' && { username: upperFirst(prop) }),
+        ...(type === 'email' && { email: toLower(prop) }),
+      },
+    })) as unknown as IUserDocument;
     return user;
   } catch (error) {
     throw new Error(error);
