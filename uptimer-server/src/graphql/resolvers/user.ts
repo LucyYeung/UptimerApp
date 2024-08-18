@@ -108,6 +108,16 @@ export const UserResolver = {
       const response = await userReturnValue(req, result, 'register');
       return response;
     },
+    logout: async (
+      _: undefined,
+      __: { user: IUserDocument },
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      req.session = null;
+      req.currentUser = undefined;
+      return null;
+    },
   },
   User: {
     createdAt: (user: IUserDocument) => user.createdAt?.toISOString(),
