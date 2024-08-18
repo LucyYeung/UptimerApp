@@ -3,6 +3,7 @@ import { AppContext } from '@app/server/server';
 import {
   createNotificationGroup,
   getAllNotificationGroups,
+  updateNotificationGroup,
 } from '@app/services/notification.service';
 import { authenticateGraphQLRoute } from '@app/utils/utils';
 
@@ -36,6 +37,21 @@ export const NotificationResovler = {
       authenticateGraphQLRoute(req);
 
       const notification = await createNotificationGroup(args.group);
+      return {
+        notifications: [notification],
+      };
+    },
+    updateNotificationGroup: async (
+      _: undefined,
+      args: { notificationId: string; group: INotificationDocument },
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+
+      const { notificationId, group } = args;
+      await updateNotificationGroup(parseInt(notificationId), group);
+      const notification = { ...group, id: parseInt(notificationId) };
       return {
         notifications: [notification],
       };
