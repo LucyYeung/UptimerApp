@@ -47,6 +47,9 @@ export const UserResolver = {
       return response;
     },
   },
+  User: {
+    createdAt: (user: IUserDocument) => user.createdAt?.toISOString(),
+  },
 };
 
 const userReturnValue = async (
@@ -66,7 +69,7 @@ const userReturnValue = async (
     notifications = await getAllNotificationGroup(result.id);
   }
 
-  const { id, email, username } = result;
+  const { id, email, username, createdAt } = result;
   const userJwt: string = sign({ id, email, username }, JWT_TOKEN);
   req.session = {
     jwt: userJwt,
@@ -77,6 +80,7 @@ const userReturnValue = async (
     id,
     email,
     username,
+    createdAt,
   } as IUserDocument;
   return { user, notifications };
 };
