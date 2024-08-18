@@ -15,7 +15,7 @@ import {
   getUserByUserNameOrEmail,
 } from '@app/services/user.service';
 import { authenticateGraphQLRoute, isEmail } from '@app/utils/utils';
-import { isEmail } from '@app/utils/utils';
+import { UserLoginRules, UserRegisterationRules } from '@app/validations';
 import { Request } from 'express';
 import { GraphQLError } from 'graphql';
 import { sign } from 'jsonwebtoken';
@@ -50,9 +50,12 @@ export const UserResolver = {
       contextValue: AppContext,
     ) => {
       const { req } = contextValue;
-      // TODO: validate
-
       const { username, password } = args;
+      await UserLoginRules.validate(
+        { username, password },
+        { abortEarly: false },
+      );
+
       const isValidEmail = isEmail(username);
       const type = !isValidEmail ? 'username' : 'email';
       const existingUser = await getUserByProp(username, type);
@@ -79,7 +82,7 @@ export const UserResolver = {
     ) => {
       const { req } = contextValue;
       const { user } = args;
-      // TODO: Add data validation
+      await UserRegisterationRules.validate(user, { abortEarly: false });
 
       const { username, email, password } = user;
       const checkIfUserExist = await getUserByUserNameOrEmail(
@@ -108,7 +111,7 @@ export const UserResolver = {
     ) => {
       const { req } = contextValue;
       const { user } = args;
-      // TODO: Add data validation
+      await UserRegisterationRules.validate(user, { abortEarly: false });
 
       const { username, email, socialId, type } = user;
       const checkIfUserExist = await getUserBySocialId(
