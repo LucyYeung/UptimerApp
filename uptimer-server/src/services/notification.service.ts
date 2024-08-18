@@ -22,7 +22,7 @@ export const getSingleNotificationGroup = async (notificationId: number) => {
   }
 };
 
-export const getAllNotificationGroup = async (userId: number) => {
+export const getAllNotificationGroups = async (userId: number) => {
   try {
     const notifications = (await NotificationModel.findAll({
       where: { userId },

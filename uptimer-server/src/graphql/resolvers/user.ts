@@ -6,7 +6,7 @@ import logger from '@app/server/logger';
 import { AppContext } from '@app/server/server';
 import {
   createNotificationGroup,
-  getAllNotificationGroup,
+  getAllNotificationGroups,
 } from '@app/services/notification.service';
 import {
   createNewUser,
@@ -33,7 +33,7 @@ export const UserResolver = {
       logger.info(req.currentUser);
 
       const { id } = req.currentUser!;
-      const notifications = await getAllNotificationGroup(id);
+      const notifications = await getAllNotificationGroups(id);
       return {
         user: {
           ...req.currentUser,
@@ -164,7 +164,7 @@ const userReturnValue = async (
     });
     notifications.push(notification);
   } else if (type === 'login' && result && result.id && result.email) {
-    notifications = await getAllNotificationGroup(result.id);
+    notifications = await getAllNotificationGroups(result.id);
   }
 
   const { id, email, username, createdAt } = result;
