@@ -10,6 +10,7 @@ import {
 import {
   createNewUser,
   getUserByProp,
+  getUserBySocialId,
   getUserByUserNameOrEmail,
 } from '@app/services/user.service';
 import { isEmail } from '@app/utils/utils';
@@ -72,6 +73,36 @@ export const UserResolver = {
         username: upperFirst(username),
         email: toLower(email),
         password,
+      } as IUserDocument;
+      const result = await createNewUser(authData);
+      const response = await userReturnValue(req, result, 'register');
+      return response;
+    },
+    authSocialUser: async (
+      _: undefined,
+      args: { user: IUserDocument },
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      const { user } = args;
+      // TODO: Add data validation
+
+      const { username, email, socialId, type } = user;
+      const checkIfUserExist = await getUserBySocialId(
+        socialId!,
+        email!,
+        type!,
+      );
+      if (checkIfUserExist) {
+        const response = await userReturnValue(req, checkIfUserExist, 'login');
+        return response;
+      }
+
+      const authData = {
+        username: upperFirst(username),
+        email: toLower(email),
+        ...(type === 'facebook' && { facebookId: socialId }),
+        ...(type === 'google' && { googleId: socialId }),
       } as IUserDocument;
       const result = await createNewUser(authData);
       const response = await userReturnValue(req, result, 'register');
