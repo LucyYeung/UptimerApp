@@ -2,6 +2,7 @@ import { INotificationDocument } from '@app/interfaces/notification.interface';
 import { AppContext } from '@app/server/server';
 import {
   createNotificationGroup,
+  deleteNotificationGroup,
   getAllNotificationGroups,
   updateNotificationGroup,
 } from '@app/services/notification.service';
@@ -54,6 +55,19 @@ export const NotificationResovler = {
       const notification = { ...group, id: parseInt(notificationId) };
       return {
         notifications: [notification],
+      };
+    },
+    deleteNotificationGroup: async (
+      _: undefined,
+      { notificationId }: { notificationId: string },
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+
+      await deleteNotificationGroup(parseInt(notificationId));
+      return {
+        id: notificationId,
       };
     },
   },
