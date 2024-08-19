@@ -7,7 +7,7 @@ import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin
 import { resolvers } from '@app/graphql/resolvers';
 import { mergedGQLSchema } from '@app/graphql/schema';
 import { AppContext } from '@app/interfaces/monitor.interface';
-import { startMonitors } from '@app/utils/utils';
+import { enableAutoRefreshJob, startMonitors } from '@app/utils/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import cookieSession from 'cookie-session';
 import cors from 'cors';
@@ -138,9 +138,14 @@ export default class MonitorServer {
   }
 
   private webSocketConnection() {
-    this.wsServer.on('connection', () => {
-      console.log('websocket connected');
-    });
+    this.wsServer.on(
+      'connection',
+      (_ws: WebSocket, req: http.IncomingMessage) => {
+        if (req.headers.cookie) {
+          enableAutoRefreshJob(req.headers.cookie);
+        }
+      },
+    );
   }
 
   private async startServer() {

@@ -1,14 +1,19 @@
+import { pubSub } from '@app/graphql/resolvers/monitor';
 import { IAuthPayload } from '@app/interfaces/user.interface';
 import { JWT_TOKEN } from '@app/server/config';
+import logger from '@app/server/logger';
 import {
   getAllUsersActiveMonitors,
   getMonitorById,
+  getUserActiveMonitors,
   startCreateMonitor,
 } from '@app/services/monitor.service';
 import { Request } from 'express';
 import { GraphQLError } from 'graphql';
 import { verify } from 'jsonwebtoken';
 import { toLower } from 'lodash';
+
+import { startSingleJob } from './jobs';
 
 export const appTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -74,4 +79,36 @@ export const resumeMonitor = async (monitorId: number) => {
   const monitor = await getMonitorById(monitorId);
   startCreateMonitor(monitor, toLower(monitor.name), monitor.type);
   await sleep(getRandomInt(300, 1000));
+};
+
+export const enableAutoRefreshJob = (cookies: string) => {
+  const result = getCookies(cookies);
+  const session = Buffer.from(result['session'], 'base64').toString('ascii');
+  const payload = verify(JSON.parse(session).jwt, JWT_TOKEN) as IAuthPayload;
+  const enableAutoRefresh = JSON.parse(session).enableAutomaticRefresh;
+  if (enableAutoRefresh) {
+    startSingleJob(
+      `${toLower(payload.username)}`,
+      appTimeZone,
+      10,
+      async () => {
+        const monitors = await getUserActiveMonitors(payload.id);
+        logger.info('Job is enabled');
+        pubSub.publish('MONITORS_UPDATED', {
+          monitorsUpdated: {
+            userId: payload.id,
+            monitors,
+          },
+        });
+      },
+    );
+  }
+};
+
+export const getCookies = (cookie: string): Record<string, string> => {
+  const cookies = cookie
+    .split(';')
+    .map((c) => c.split('='))
+    .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+  return cookies;
 };
