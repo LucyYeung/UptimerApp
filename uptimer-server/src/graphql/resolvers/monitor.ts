@@ -1,7 +1,7 @@
 import { AppContext, IMonitorArgs } from '@app/interfaces/monitor.interface';
 import logger from '@app/server/logger';
-import { createMonitor } from '@app/services/monitor.service';
-import { startSingleJob } from '@app/utils/jobs';
+import { createMonitor, toggleMonitor } from '@app/services/monitor.service';
+import { startSingleJob, stopSingleBackgroundJob } from '@app/utils/jobs';
 import { appTimeZone, authenticateGraphQLRoute } from '@app/utils/utils';
 
 export const MonitorResolver = {
@@ -26,6 +26,31 @@ export const MonitorResolver = {
 
       return {
         monitors: [monitor],
+      };
+    },
+    toggleMonitor: async (
+      _: undefined,
+      args: IMonitorArgs,
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+
+      const { monitorId, userId, name, active } = args.monitor!;
+      const results = await toggleMonitor(monitorId!, userId, active);
+
+      if (!active) {
+        stopSingleBackgroundJob(name, monitorId);
+      } else {
+        // TODO: Add a resume method here
+        logger.info('Resume monitor');
+        startSingleJob(name, appTimeZone, 10, () => {
+          logger.info('Resume after 10 seconds');
+        });
+      }
+
+      return {
+        monitors: results,
       };
     },
   },
