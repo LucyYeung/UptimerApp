@@ -20,7 +20,10 @@ import {
   authenticateGraphQLRoute,
   resumeMonitor,
 } from '@app/utils/utils';
+import { PubSub } from 'graphql-subscriptions';
 import { toLower } from 'lodash';
+
+export const pubSub = new PubSub();
 
 export const MonitorResolver = {
   Query: {
@@ -175,5 +178,10 @@ export const MonitorResolver = {
         : monitor.responseTime,
     notifications: (monitor: IMonitorDocument) =>
       getSingleNotificationGroup(monitor.notificationId!),
+  },
+  Subscription: {
+    monitorsUpdated: {
+      subscribe: () => pubSub.asyncIterator(['MONITORS_UPDATED']),
+    },
   },
 };
