@@ -113,6 +113,16 @@ export const MonitorResolver = {
       const { monitorId, userId, name, active } = args.monitor!;
       const results = await toggleMonitor(monitorId!, userId, active);
 
+      const hasActiveMonitors = results.some((monitor) => monitor.active);
+      // Stop auto refresh if no active monitors for single user
+      if (!hasActiveMonitors) {
+        req.session = {
+          ...req.session,
+          enableAutomaticRefresh: false,
+        };
+        stopSingleBackgroundJob(`${toLower(req.currentUser?.username)}`);
+      }
+
       if (!active) {
         stopSingleBackgroundJob(name, monitorId);
       } else {
