@@ -2,6 +2,7 @@ import { IAuthPayload } from '@app/interfaces/user.interface';
 import { JWT_TOKEN } from '@app/server/config';
 import {
   getAllUsersActiveMonitors,
+  getMonitorById,
   startCreateMonitor,
 } from '@app/services/monitor.service';
 import { Request } from 'express';
@@ -67,4 +68,10 @@ export const startMonitors = async () => {
     startCreateMonitor(monitor, toLower(monitor.name), monitor.type);
     await sleep(getRandomInt(300, 1000));
   }
+};
+
+export const resumeMonitor = async (monitorId: number) => {
+  const monitor = await getMonitorById(monitorId);
+  startCreateMonitor(monitor, toLower(monitor.name), monitor.type);
+  await sleep(getRandomInt(300, 1000));
 };
