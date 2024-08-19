@@ -2,10 +2,12 @@ import { IMonitorDocument } from '@app/interfaces/monitor.interface';
 import { MonitorModel } from '@app/models/monitor.model';
 import dayjs from 'dayjs';
 
-
-
 import { getSingleNotificationGroup } from './notification.service';
 
+const HTTP_TYPE = 'http';
+const TCP_TYPE = 'tcp';
+const MONGO_TYPE = 'mongodb';
+const REDIS_TYPE = 'redis';
 
 /**
  * Create a new monitor
@@ -61,13 +63,13 @@ export const getUserActiveMonitors = async (userId: number) => {
  * Get active monitors for all users
  * @returns {Promise<IMonitorDocument[]>}
  */
-export const getAllUserMonitors = async () => {
+export const getAllUsersActiveMonitors = async () => {
   try {
-    const monitors = await MonitorModel.findAll({
+    const monitors = (await MonitorModel.findAll({
       raw: true,
       where: { active: true },
       order: [['createdAt', 'DESC']],
-    });
+    })) as unknown as IMonitorDocument[];
     return monitors;
   } catch (error) {
     throw new Error(error);
@@ -150,6 +152,25 @@ export const updateMonitorStatus = async (
     return updatedMonitor;
   } catch (error) {
     throw new Error(error);
+  }
+};
+
+export const startCreateMonitor = (
+  monitor: IMonitorDocument,
+  name: string,
+  type: string,
+) => {
+  if (type === HTTP_TYPE) {
+    console.log('http', monitor.name, name);
+  }
+  if (type === TCP_TYPE) {
+    console.log('tcp', monitor.name, name);
+  }
+  if (type === MONGO_TYPE) {
+    console.log('mongo', monitor.name, name);
+  }
+  if (type === REDIS_TYPE) {
+    console.log('redis', monitor.name, name);
   }
 };
 
