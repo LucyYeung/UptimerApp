@@ -113,7 +113,8 @@ class HttpMonitor {
         this.successAssertionCheck(monitorData, heartbeatData);
       }
     } catch (error) {
-      console.log(error);
+      const monitorData = await getMonitorById(monitorId!);
+      this.httpError(monitorId!, startTime, monitorData, error);
     }
   }
 
@@ -156,6 +157,40 @@ class HttpMonitor {
       // TODO: send success email
     }
     logger.info(`HTTP heartbeat success: Monitor ID: ${monitorData.id}`);
+  }
+
+  async httpError(
+    monitorId: number,
+    startTime: number,
+    monitorData: IMonitorDocument,
+    error: any,
+  ) {
+    logger.info(`HTTP heartbeat failed: Monitor ID: ${monitorData.id}`);
+
+    this.errorCount += 1;
+    const timestamp = dayjs.utc().valueOf();
+    const heartbeatData = {
+      monitorId: monitorId!,
+      status: 1,
+      code: error.response?.status ?? 500,
+      message: error.response
+        ? `${error.response.status} - ${error.response.statusText}`
+        : 'Http monitor error',
+      timestamp: dayjs.utc().valueOf(),
+      reqHeaders: error.response ? JSON.stringify(error.response.headers) : '',
+      resHeaders: error.response
+        ? JSON.stringify(error.response.request.res.rawHeaders)
+        : '',
+      reqBody: '',
+      resBody: error.response ? JSON.stringify(error.response.data) : '',
+      responseTime: Date.now() - startTime,
+    };
+
+    await Promise.all([
+      updateMonitorStatus(monitorData, timestamp, 'failure'),
+      createHttpHeartBeat(heartbeatData),
+    ]);
+    // TODO: send error email
   }
 }
 
