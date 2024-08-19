@@ -8,6 +8,7 @@ import {
   createMonitor,
   deleteSingleMonitor,
   getMonitorById,
+  getUserMonitors,
   toggleMonitor,
   updateSingleMonitor,
 } from '@app/services/monitor.service';
@@ -28,6 +29,19 @@ export const MonitorResolver = {
       const monitor = await getMonitorById(parseInt(monitorId!));
       return {
         monitors: [monitor],
+      };
+    },
+    getUserMonitors: async (
+      _: undefined,
+      { userId }: { userId: string },
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+
+      const monitors = await getUserMonitors(parseInt(userId!));
+      return {
+        monitors,
       };
     },
   },
