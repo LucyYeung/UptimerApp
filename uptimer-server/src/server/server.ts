@@ -7,6 +7,7 @@ import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin
 import { resolvers } from '@app/graphql/resolvers';
 import { mergedGQLSchema } from '@app/graphql/schema';
 import { AppContext } from '@app/interfaces/monitor.interface';
+import { startMonitors } from '@app/utils/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import cookieSession from 'cookie-session';
 import cors from 'cors';
@@ -119,6 +120,7 @@ export default class MonitorServer {
       logger.info(`Server has started with process id: ${process.pid}`);
       this.httpServer.listen(SERVER_PORT, () => {
         logger.info(`Server running on port: ${SERVER_PORT}`);
+        startMonitors();
       });
     } catch (error) {
       logger.info('error', 'startServer() error methods:', error);
