@@ -1,7 +1,8 @@
 import { AppContext, IMonitorArgs } from '@app/interfaces/monitor.interface';
 import logger from '@app/server/logger';
 import { createMonitor } from '@app/services/monitor.service';
-import { authenticateGraphQLRoute } from '@app/utils/utils';
+import { startSingleJob } from '@app/utils/jobs';
+import { appTimeZone, authenticateGraphQLRoute } from '@app/utils/utils';
 
 export const MonitorResolver = {
   Mutation: {
@@ -18,6 +19,9 @@ export const MonitorResolver = {
       if (body?.active && monitor.active) {
         // TODO: start created monitor
         logger.info('Start new monitor');
+        startSingleJob(body.name, appTimeZone, 10, () => {
+          logger.info('This is called every 10 seconds');
+        });
       }
 
       return {

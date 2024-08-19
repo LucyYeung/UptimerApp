@@ -4,6 +4,8 @@ import { Request } from 'express';
 import { GraphQLError } from 'graphql';
 import { verify } from 'jsonwebtoken';
 
+export const appTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 /**
  * Checks if email is valid
  * @param email email address
