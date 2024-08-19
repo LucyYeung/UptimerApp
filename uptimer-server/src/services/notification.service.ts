@@ -13,6 +13,7 @@ export const createNotificationGroup = async (data: INotificationDocument) => {
 export const getSingleNotificationGroup = async (notificationId: number) => {
   try {
     const notifications = (await NotificationModel.findOne({
+      raw: true,
       where: { id: notificationId },
       order: [['createdAt', 'DESC']],
     })) as unknown as INotificationDocument;
@@ -25,6 +26,7 @@ export const getSingleNotificationGroup = async (notificationId: number) => {
 export const getAllNotificationGroups = async (userId: number) => {
   try {
     const notifications = (await NotificationModel.findAll({
+      raw: true,
       where: { userId },
       order: [['createdAt', 'DESC']],
     })) as unknown as INotificationDocument[];

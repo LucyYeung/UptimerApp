@@ -2,7 +2,10 @@ import { IMonitorDocument } from '@app/interfaces/monitor.interface';
 import { MonitorModel } from '@app/models/monitor.model';
 import dayjs from 'dayjs';
 
+
+
 import { getSingleNotificationGroup } from './notification.service';
+
 
 /**
  * Create a new monitor
@@ -27,6 +30,7 @@ export const createMonitor = async (data: IMonitorDocument) => {
 export const getUserMonitors = async (userId: number, active?: boolean) => {
   try {
     const monitors = (await MonitorModel.findAll({
+      raw: true,
       where: {
         userId,
         ...(active && { active }),
@@ -60,6 +64,7 @@ export const getUserActiveMonitors = async (userId: number) => {
 export const getAllUserMonitors = async () => {
   try {
     const monitors = await MonitorModel.findAll({
+      raw: true,
       where: { active: true },
       order: [['createdAt', 'DESC']],
     });
@@ -77,6 +82,7 @@ export const getAllUserMonitors = async () => {
 export const getMonitorById = async (monitorId: number) => {
   try {
     const monitor = (await MonitorModel.findOne({
+      raw: true,
       where: { id: monitorId },
     })) as unknown as IMonitorDocument;
 

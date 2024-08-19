@@ -19,6 +19,7 @@ export const getUserByUserNameOrEmail = async (
 ) => {
   try {
     const user = (await UserModel.findOne({
+      raw: true,
       where: {
         [Op.or]: [
           { username: upperFirst(username) },
@@ -39,6 +40,7 @@ export const getUserBySocialId = async (
 ) => {
   try {
     const user = (await UserModel.findOne({
+      raw: true,
       where: {
         [Op.or]: [
           {
@@ -58,6 +60,7 @@ export const getUserBySocialId = async (
 export const getUserByProp = async (prop: string, type: string) => {
   try {
     const user = (await UserModel.findOne({
+      raw: true,
       where: {
         ...(type === 'username' && { username: upperFirst(prop) }),
         ...(type === 'email' && { email: toLower(prop) }),
