@@ -23,7 +23,9 @@ import {
   json,
   urlencoded,
 } from 'express';
+import { useServer } from 'graphql-ws/lib/use/ws';
 import http from 'http';
+import { Server as WSServer, WebSocketServer } from 'ws';
 
 import {
   CLIENT_URL,
@@ -42,14 +44,25 @@ export default class MonitorServer {
   private app: Express;
   private httpServer: http.Server;
   private server: ApolloServer;
+  private wsServer: WSServer;
 
   constructor(app: Express) {
     this.app = app;
     this.httpServer = new http.Server(app);
+    this.wsServer = new WebSocketServer({
+      server: this.httpServer,
+      path: '/graphql',
+    });
     const schema = makeExecutableSchema({
       typeDefs: mergedGQLSchema,
       resolvers,
     });
+    const serverCleanUp = useServer(
+      {
+        schema,
+      },
+      this.wsServer,
+    );
     this.server = new ApolloServer<AppContext | BaseContext>({
       schema,
       introspection: NODE_ENV !== 'production',
@@ -57,6 +70,15 @@ export default class MonitorServer {
         ApolloServerPluginDrainHttpServer({
           httpServer: this.httpServer,
         }),
+        {
+          async serverWillStart() {
+            return {
+              async drainServer() {
+                await serverCleanUp.dispose();
+              },
+            };
+          },
+        },
         NODE_ENV === 'production'
           ? ApolloServerPluginLandingPageDisabled()
           : ApolloServerPluginLandingPageLocalDefault({ embed: true }),
@@ -71,6 +93,7 @@ export default class MonitorServer {
      */
     await this.server.start();
     this.standardMiddleware(this.app);
+    this.webSocketConnection();
     this.startServer();
   }
 
@@ -111,6 +134,12 @@ export default class MonitorServer {
   private healthRoute(app: Express) {
     app.get('/health', (_req: Request, res: Response) => {
       res.status(200).send('Uptimer monitor server is healthy and OK.');
+    });
+  }
+
+  private webSocketConnection() {
+    this.wsServer.on('connection', () => {
+      console.log('websocket connected');
     });
   }
 
