@@ -1,6 +1,10 @@
 import { AppContext, IMonitorArgs } from '@app/interfaces/monitor.interface';
 import logger from '@app/server/logger';
-import { createMonitor, toggleMonitor } from '@app/services/monitor.service';
+import {
+  createMonitor,
+  toggleMonitor,
+  updateSingleMonitor,
+} from '@app/services/monitor.service';
 import { startSingleJob, stopSingleBackgroundJob } from '@app/utils/jobs';
 import { appTimeZone, authenticateGraphQLRoute } from '@app/utils/utils';
 
@@ -51,6 +55,24 @@ export const MonitorResolver = {
 
       return {
         monitors: results,
+      };
+    },
+    updateMonitor: async (
+      _: undefined,
+      args: IMonitorArgs,
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+
+      const { monitorId, userId, monitor } = args;
+      const monitors = await updateSingleMonitor(
+        parseInt(monitorId!),
+        parseInt(userId!),
+        monitor!,
+      );
+      return {
+        monitors,
       };
     },
   },
