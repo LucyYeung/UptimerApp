@@ -1,7 +1,9 @@
 import { IMonitorDocument } from '@app/interfaces/monitor.interface';
 import { MonitorModel } from '@app/models/monitor.model';
 import dayjs from 'dayjs';
+import { toLower } from 'lodash';
 
+import { httpStatusMonitor } from './http.service';
 import { getSingleNotificationGroup } from './notification.service';
 
 const HTTP_TYPE = 'http';
@@ -161,7 +163,7 @@ export const startCreateMonitor = (
   type: string,
 ) => {
   if (type === HTTP_TYPE) {
-    console.log('http', monitor.name, name);
+    httpStatusMonitor(monitor, toLower(name));
   }
   if (type === TCP_TYPE) {
     console.log('tcp', monitor.name, name);
