@@ -14,7 +14,12 @@ import {
 } from '@app/services/monitor.service';
 import { getSingleNotificationGroup } from '@app/services/notification.service';
 import { startSingleJob, stopSingleBackgroundJob } from '@app/utils/jobs';
+import {
+  appTimeZone,
+  authenticateGraphQLRoute,
 import { appTimeZone, authenticateGraphQLRoute } from '@app/utils/utils';
+} from '@app/utils/utils';
+import { toLower } from 'lodash';
 
 export const MonitorResolver = {
   Query: {
@@ -42,6 +47,38 @@ export const MonitorResolver = {
       const monitors = await getUserMonitors(parseInt(userId!));
       return {
         monitors,
+      };
+    },
+    autoRefresh: async (
+      _: undefined,
+      { userId, refresh }: { userId: string; refresh: boolean },
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+
+      req.session = {
+        ...req.session,
+        enableAutomaticRefresh: refresh,
+      };
+
+      if (refresh) {
+        startSingleJob(
+          `${toLower(req.currentUser?.username)}`,
+          appTimeZone,
+          10,
+          async () => {
+            const monitors = await getUserMonitors(parseInt(userId!));
+            // TODO: publish data to client
+            logger.info(monitors[0].name);
+          },
+        );
+      } else {
+        stopSingleBackgroundJob(`${toLower(req.currentUser?.username)}`);
+      }
+
+      return {
+        refresh,
       };
     },
   },
