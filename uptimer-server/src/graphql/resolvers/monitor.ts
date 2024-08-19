@@ -2,6 +2,7 @@ import { AppContext, IMonitorArgs } from '@app/interfaces/monitor.interface';
 import logger from '@app/server/logger';
 import {
   createMonitor,
+  deleteSingleMonitor,
   toggleMonitor,
   updateSingleMonitor,
 } from '@app/services/monitor.service';
@@ -73,6 +74,20 @@ export const MonitorResolver = {
       );
       return {
         monitors,
+      };
+    },
+    deleteMonitor: async (
+      _: undefined,
+      args: IMonitorArgs,
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+
+      const { monitorId, userId, type } = args;
+      await deleteSingleMonitor(parseInt(monitorId!), parseInt(userId!), type!);
+      return {
+        id: monitorId,
       };
     },
   },
