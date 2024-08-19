@@ -7,6 +7,7 @@ import logger from '@app/server/logger';
 import {
   createMonitor,
   deleteSingleMonitor,
+  getMonitorById,
   toggleMonitor,
   updateSingleMonitor,
 } from '@app/services/monitor.service';
@@ -15,6 +16,21 @@ import { startSingleJob, stopSingleBackgroundJob } from '@app/utils/jobs';
 import { appTimeZone, authenticateGraphQLRoute } from '@app/utils/utils';
 
 export const MonitorResolver = {
+  Query: {
+    getSingleMonitor: async (
+      _: undefined,
+      { monitorId }: { monitorId: string },
+      contextValue: AppContext,
+    ) => {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+
+      const monitor = await getMonitorById(parseInt(monitorId!));
+      return {
+        monitors: [monitor],
+      };
+    },
+  },
   Mutation: {
     createMonitor: async (
       _: undefined,
