@@ -1,6 +1,11 @@
 import { IHeartbeat } from '@app/interfaces/heartbeat.interface';
 import { IMonitorDocument } from '@app/interfaces/monitor.interface';
-import { getMonitorById } from '@app/services/monitor.service';
+import logger from '@app/server/logger';
+import { createHttpHeartBeat } from '@app/services/http.service';
+import {
+  getMonitorById,
+  updateMonitorStatus,
+} from '@app/services/monitor.service';
 import { encodeBase64 } from '@app/utils/utils';
 import axios, { AxiosRequestConfig } from 'axios';
 import dayjs from 'dayjs';
@@ -71,6 +76,7 @@ class HttpMonitor {
           ...(headers ? JSON.parse(headers) : {}),
         },
         maxRedirects: redirects,
+        ...(bodyValue && { data: bodyValue }),
       };
 
       const response = await axios.request(options);
@@ -102,13 +108,54 @@ class HttpMonitor {
         (contentTypeList.length > 0 &&
           !contentTypeList.includes(response.headers['content-type']))
       ) {
-        // TODO: error assertion
+        this.errorAssertionCheck(monitorData, heartbeatData);
       } else {
-        // TODO: success assertion
+        this.successAssertionCheck(monitorData, heartbeatData);
       }
     } catch (error) {
       console.log(error);
     }
+  }
+
+  async errorAssertionCheck(
+    monitorData: IMonitorDocument,
+    heartbeatData: IHeartbeat,
+  ) {
+    this.errorCount += 1;
+    const timestamp = dayjs.utc().valueOf();
+    await Promise.all([
+      updateMonitorStatus(monitorData, timestamp, 'failure'),
+      createHttpHeartBeat(heartbeatData),
+    ]);
+
+    if (
+      monitorData.alertThreshold > 0 &&
+      this.errorCount > monitorData.alertThreshold
+    ) {
+      this.errorCount = 0;
+      this.noSuccessAlert = false;
+      // TODO: send error email
+    }
+    logger.info(
+      `HTTP heartbeat failed assertions: Monitor ID: ${monitorData.id}`,
+    );
+  }
+
+  async successAssertionCheck(
+    monitorData: IMonitorDocument,
+    heartbeatData: IHeartbeat,
+  ) {
+    await Promise.all([
+      updateMonitorStatus(monitorData, heartbeatData.timestamp, 'success'),
+      createHttpHeartBeat(heartbeatData),
+    ]);
+
+    if (!this.noSuccessAlert) {
+      this.errorCount = 0;
+      this.noSuccessAlert = true;
+      // TODO: send success email
+    }
+    logger.info(`HTTP heartbeat success: Monitor ID: ${monitorData.id}`);
   }
 }
 
