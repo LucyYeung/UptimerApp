@@ -3,11 +3,11 @@ import {
   IMonitorArgs,
   IMonitorDocument,
 } from '@app/interfaces/monitor.interface';
-import logger from '@app/server/logger';
 import {
   createMonitor,
   deleteSingleMonitor,
   getMonitorById,
+  getUserActiveMonitors,
   getUserMonitors,
   startCreateMonitor,
   toggleMonitor,
@@ -72,9 +72,13 @@ export const MonitorResolver = {
           appTimeZone,
           10,
           async () => {
-            const monitors = await getUserMonitors(parseInt(userId!));
-            // TODO: publish data to client
-            logger.info(monitors[0].name);
+            const monitors = await getUserActiveMonitors(parseInt(userId!));
+            pubSub.publish('MONITORS_UPDATED', {
+              monitorsUpdated: {
+                userId: parseInt(userId!),
+                monitors,
+              },
+            });
           },
         );
       } else {
