@@ -1,4 +1,5 @@
 import { pubSub } from '@app/graphql/resolvers/monitor';
+import { IHeartbeat } from '@app/interfaces/heartbeat.interface';
 import { IAuthPayload } from '@app/interfaces/user.interface';
 import { JWT_TOKEN } from '@app/server/config';
 import logger from '@app/server/logger';
@@ -107,6 +108,17 @@ export const enableAutoRefreshJob = (cookies: string) => {
 
 export const encodeBase64 = (user: string, pass: string): string => {
   return Buffer.from(`${user || ''}:${pass || ''}`).toString('base64');
+};
+
+export const uptimePercentage = (heartbeats: IHeartbeat[]): number => {
+  if (!heartbeats) return 0;
+  const totalHeartbeats = heartbeats.length;
+  const downtimeHeatbeats = heartbeats.filter(
+    (heartbeat) => heartbeat.status === 1,
+  ).length;
+  return Math.round(
+    ((totalHeartbeats - downtimeHeatbeats) / totalHeartbeats) * 100,
+  );
 };
 
 export const getCookies = (cookie: string): Record<string, string> => {

@@ -1,6 +1,7 @@
 import { IHeartbeat } from '@app/interfaces/heartbeat.interface';
 import { IMonitorDocument } from '@app/interfaces/monitor.interface';
 import { MonitorModel } from '@app/models/monitor.model';
+import { uptimePercentage } from '@app/utils/utils';
 import dayjs from 'dayjs';
 import { toLower } from 'lodash';
 
@@ -61,12 +62,11 @@ export const getUserActiveMonitors = async (userId: number) => {
     for (let monitor of monitors) {
       const group = await getSingleNotificationGroup(monitor.notificationId!);
       heartbeats = await getHeartBeats(monitor.type, monitor.id!, 24);
-
-      // TODO: calculate uptime
+      const uptime = uptimePercentage(heartbeats);
 
       monitor = {
         ...monitor,
-        uptime: 0,
+        uptime,
         heartbeats: heartbeats.slice(0, 16),
         notifications: group,
       };
