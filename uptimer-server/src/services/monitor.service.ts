@@ -4,6 +4,7 @@ import { HttpModel } from '@app/models/http.model';
 import { MongoModel } from '@app/models/mongo.model';
 import { MonitorModel } from '@app/models/monitor.model';
 import { RedisModel } from '@app/models/redis.model';
+import { TcpModel } from '@app/models/tcp.model';
 import { uptimePercentage } from '@app/utils/utils';
 import dayjs from 'dayjs';
 import { toLower } from 'lodash';
@@ -18,6 +19,7 @@ import {
   getRedisHeartBeatsByDuration,
   redisStatusMonitor,
 } from './redis.service';
+import { getTcpHeartBeatsByDuration, tcpStatusMonitor } from './tcp.service';
 
 const HTTP_TYPE = 'http';
 const TCP_TYPE = 'tcp';
@@ -190,7 +192,7 @@ export const startCreateMonitor = (
     httpStatusMonitor(monitor, toLower(name));
   }
   if (type === TCP_TYPE) {
-    console.log('tcp', monitor.name, name);
+    tcpStatusMonitor(monitor, toLower(name));
   }
   if (type === MONGO_TYPE) {
     mongoStatusMonitor(monitor, toLower(name));
@@ -225,7 +227,7 @@ export const getHeartBeats = async (
     heartbeats = await getHttpHeartBeatsByDuration(monitorId, duration);
   }
   if (type === TCP_TYPE) {
-    console.log('tcp');
+    heartbeats = await getTcpHeartBeatsByDuration(monitorId, duration);
   }
   if (type === MONGO_TYPE) {
     heartbeats = await getMongoHeartBeatsByDuration(monitorId, duration);
@@ -244,13 +246,14 @@ export const deleteMonitorTypeHeartbeats = async (
   if (type === HTTP_TYPE) {
     model = HttpModel;
   }
-
   if (type === MONGO_TYPE) {
     model = MongoModel;
   }
-
   if (type === REDIS_TYPE) {
     model = RedisModel;
+  }
+  if (type === TCP_TYPE) {
+    model = TcpModel;
   }
 
   if (model !== null) {
