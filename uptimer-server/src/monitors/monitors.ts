@@ -1,5 +1,6 @@
 import { IMonitorResponse } from '@app/interfaces/monitor.interface';
 import { MongoClient } from 'mongodb';
+import { Socket } from 'net';
 import { createClient } from 'redis';
 
 /**
@@ -81,24 +82,74 @@ export const redisPing = async (
           code: 500,
         });
       }
-      client.ping().then(() => {
-        if (client.isOpen) {
-          client.disconnect();
-        }
+      client
+        .ping()
+        .then(() => {
+          if (client.isOpen) {
+            client.disconnect();
+          }
 
-        resolve({
-          status: 'established',
-          responseTime: Date.now() - startTime,
-          message: 'Redis server running',
-          code: 200,
-        });
-      }).catch((error) => {
-        reject({
-          status: 'refused',
-          responseTime: Date.now() - startTime,
-          message: error.message ?? 'Redis server down',
-          code: 500,
+          resolve({
+            status: 'established',
+            responseTime: Date.now() - startTime,
+            message: 'Redis server running',
+            code: 200,
+          });
         })
+        .catch((error) => {
+          reject({
+            status: 'refused',
+            responseTime: Date.now() - startTime,
+            message: error.message ?? 'Redis server down',
+            code: 500,
+          });
+        });
+    });
+  });
+};
+
+export const tcpPing = (
+  hostname: string,
+  port: number,
+  timeout: number,
+): Promise<IMonitorResponse> => {
+  return new Promise((resolve, reject) => {
+    const socket = new Socket();
+    const startTime = Date.now();
+
+    const options = {
+      address: hostname || '127.0.0.1',
+      port: port || 80,
+      timeout: timeout || 1000,
+    };
+
+    socket.setTimeout(options.timeout, () => {
+      socket.destroy();
+      reject({
+        status: 'refused',
+        responseTime: Date.now() - startTime,
+        message: 'TCP socket timeout',
+        code: 500,
+      });
+    });
+
+    socket.connect(options.port, options.address, () => {
+      socket.destroy();
+      resolve({
+        status: 'established',
+        responseTime: Date.now() - startTime,
+        message: 'Host is up and running',
+        code: 200,
+      });
+    });
+
+    socket.on('error', (error) => {
+      socket.destroy();
+      reject({
+        status: 'refused',
+        responseTime: Date.now() - startTime,
+        message: error.message || 'TCP connection failed',
+        code: 500,
       });
     });
   });
