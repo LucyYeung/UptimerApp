@@ -1,5 +1,6 @@
 import { IHeartbeat } from '@app/interfaces/heartbeat.interface';
 import { IMonitorDocument } from '@app/interfaces/monitor.interface';
+import { HttpModel } from '@app/models/http.model';
 import { MonitorModel } from '@app/models/monitor.model';
 import { uptimePercentage } from '@app/utils/utils';
 import dayjs from 'dayjs';
@@ -154,19 +155,15 @@ export const updateMonitorStatus = async (
   try {
     const now = (timestamp ? dayjs(timestamp) : dayjs()).toDate();
     const { id, status } = monitor;
+    const updatedMonitor = { ...monitor };
     const isSuccess = type === 'success';
+    updatedMonitor.status = isSuccess ? 0 : 1;
     if (isSuccess && status === 1) {
+      updatedMonitor.lastChanged = now;
     }
     if (!isSuccess && status === 0) {
-      throw new Error('Monitor was already down');
+      updatedMonitor.lastChanged = now;
     }
-    const updatedMonitor = {
-      ...monitor,
-      status: isSuccess ? 0 : 1,
-      ...(((isSuccess && status === 1) || (!isSuccess && status === 0)) && {
-        lastChanged: now,
-      }),
-    };
     await MonitorModel.update(updatedMonitor, { where: { id } });
     return updatedMonitor;
   } catch (error) {
@@ -234,6 +231,12 @@ export const deleteMonitorTypeHeartbeats = async (
   monitorId: number,
   type: string,
 ) => {
-  // TODO: delete monitor heartbeats
-  console.log(monitorId, type);
+  let model = null;
+  if (type === HTTP_TYPE) {
+    model = HttpModel;
+  }
+
+  if (model !== null) {
+    await model.destroy({ where: { monitorId } });
+  }
 };
