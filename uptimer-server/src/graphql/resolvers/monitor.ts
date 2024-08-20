@@ -6,6 +6,7 @@ import {
 import {
   createMonitor,
   deleteSingleMonitor,
+  getHeartBeats,
   getMonitorById,
   getUserActiveMonitors,
   getUserMonitors,
@@ -182,6 +183,10 @@ export const MonitorResolver = {
         : monitor.responseTime,
     notifications: (monitor: IMonitorDocument) =>
       getSingleNotificationGroup(monitor.notificationId!),
+    heartbeats: async (monitor: IMonitorDocument) => {
+      const heartbeats = await getHeartBeats(monitor.type, monitor.id!, 24);
+      return heartbeats.slice(0, 16);
+    },
   },
   Subscription: {
     monitorsUpdated: {

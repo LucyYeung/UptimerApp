@@ -1,9 +1,10 @@
+import { IHeartbeat } from '@app/interfaces/heartbeat.interface';
 import { IMonitorDocument } from '@app/interfaces/monitor.interface';
 import { MonitorModel } from '@app/models/monitor.model';
 import dayjs from 'dayjs';
 import { toLower } from 'lodash';
 
-import { httpStatusMonitor } from './http.service';
+import { getHttpHeartBeatsByDuration, httpStatusMonitor } from './http.service';
 import { getSingleNotificationGroup } from './notification.service';
 
 const HTTP_TYPE = 'http';
@@ -54,8 +55,24 @@ export const getUserMonitors = async (userId: number, active?: boolean) => {
  */
 export const getUserActiveMonitors = async (userId: number) => {
   try {
+    let heartbeats: IHeartbeat[] = [];
+    const updatedMonitors: IMonitorDocument[] = [];
     const monitors = await getUserMonitors(userId, true);
-    return monitors;
+    for (let monitor of monitors) {
+      const group = await getSingleNotificationGroup(monitor.notificationId!);
+      heartbeats = await getHeartBeats(monitor.type, monitor.id!, 24);
+
+      // TODO: calculate uptime
+
+      monitor = {
+        ...monitor,
+        uptime: 0,
+        heartbeats: heartbeats.slice(0, 16),
+        notifications: group,
+      };
+      updatedMonitors.push(monitor);
+    }
+    return updatedMonitors;
   } catch (error) {
     throw new Error(error);
   }
@@ -190,6 +207,27 @@ export const deleteSingleMonitor = async (
   } catch (error) {
     throw new Error(error);
   }
+};
+
+export const getHeartBeats = async (
+  type: string,
+  monitorId: number,
+  duration: number,
+) => {
+  let heartbeats: IHeartbeat[] = [];
+  if (type === HTTP_TYPE) {
+    heartbeats = await getHttpHeartBeatsByDuration(monitorId, duration);
+  }
+  if (type === TCP_TYPE) {
+    console.log('tcp');
+  }
+  if (type === MONGO_TYPE) {
+    console.log('mongo');
+  }
+  if (type === REDIS_TYPE) {
+    console.log('redis');
+  }
+  return heartbeats;
 };
 
 export const deleteMonitorTypeHeartbeats = async (
