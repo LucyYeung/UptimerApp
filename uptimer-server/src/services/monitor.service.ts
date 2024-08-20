@@ -3,6 +3,7 @@ import { IMonitorDocument } from '@app/interfaces/monitor.interface';
 import { HttpModel } from '@app/models/http.model';
 import { MongoModel } from '@app/models/mongo.model';
 import { MonitorModel } from '@app/models/monitor.model';
+import { RedisModel } from '@app/models/redis.model';
 import { uptimePercentage } from '@app/utils/utils';
 import dayjs from 'dayjs';
 import { toLower } from 'lodash';
@@ -13,6 +14,10 @@ import {
   mongoStatusMonitor,
 } from './mongo.service';
 import { getSingleNotificationGroup } from './notification.service';
+import {
+  getRedisHeartBeatsByDuration,
+  redisStatusMonitor,
+} from './redis.service';
 
 const HTTP_TYPE = 'http';
 const TCP_TYPE = 'tcp';
@@ -191,7 +196,7 @@ export const startCreateMonitor = (
     mongoStatusMonitor(monitor, toLower(name));
   }
   if (type === REDIS_TYPE) {
-    console.log('redis', monitor.name, name);
+    redisStatusMonitor(monitor, toLower(name));
   }
 };
 
@@ -226,7 +231,7 @@ export const getHeartBeats = async (
     heartbeats = await getMongoHeartBeatsByDuration(monitorId, duration);
   }
   if (type === REDIS_TYPE) {
-    console.log('redis');
+    heartbeats = await getRedisHeartBeatsByDuration(monitorId, duration);
   }
   return heartbeats;
 };
@@ -242,6 +247,10 @@ export const deleteMonitorTypeHeartbeats = async (
 
   if (type === MONGO_TYPE) {
     model = MongoModel;
+  }
+
+  if (type === REDIS_TYPE) {
+    model = RedisModel;
   }
 
   if (model !== null) {
