@@ -1,5 +1,6 @@
 import { IMonitorResponse } from '@app/interfaces/monitor.interface';
 import { MongoClient } from 'mongodb';
+import { createClient } from 'redis';
 
 /**
  * Connect to and ping a MongoDB database
@@ -42,5 +43,63 @@ export const mongodbPing = async (
           });
         }
       });
+  });
+};
+
+/**
+ * Redis server ping
+ * @param connectionString
+ * @returns {Promise<IMonitorResponse>}
+ */
+export const redisPing = async (
+  connectionString: string,
+): Promise<IMonitorResponse> => {
+  const startTime = Date.now();
+
+  return new Promise((resolve, reject) => {
+    const client = createClient({ url: connectionString });
+
+    client.on('error', (error) => {
+      if (client.isOpen) {
+        client.disconnect();
+      }
+
+      reject({
+        status: 'refused',
+        responseTime: Date.now() - startTime,
+        message: error.message ?? 'Redis connection refused',
+        code: 500,
+      });
+    });
+
+    client.connect().then(() => {
+      if (!client.isOpen) {
+        reject({
+          status: 'refused',
+          responseTime: Date.now() - startTime,
+          message: "Connection isn't open",
+          code: 500,
+        });
+      }
+      client.ping().then(() => {
+        if (client.isOpen) {
+          client.disconnect();
+        }
+
+        resolve({
+          status: 'established',
+          responseTime: Date.now() - startTime,
+          message: 'Redis server running',
+          code: 200,
+        });
+      }).catch((error) => {
+        reject({
+          status: 'refused',
+          responseTime: Date.now() - startTime,
+          message: error.message ?? 'Redis server down',
+          code: 500,
+        })
+      });
+    });
   });
 };
