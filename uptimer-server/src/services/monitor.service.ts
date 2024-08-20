@@ -1,12 +1,17 @@
 import { IHeartbeat } from '@app/interfaces/heartbeat.interface';
 import { IMonitorDocument } from '@app/interfaces/monitor.interface';
 import { HttpModel } from '@app/models/http.model';
+import { MongoModel } from '@app/models/mongo.model';
 import { MonitorModel } from '@app/models/monitor.model';
 import { uptimePercentage } from '@app/utils/utils';
 import dayjs from 'dayjs';
 import { toLower } from 'lodash';
 
 import { getHttpHeartBeatsByDuration, httpStatusMonitor } from './http.service';
+import {
+  getMongoHeartBeatsByDuration,
+  mongoStatusMonitor,
+} from './mongo.service';
 import { getSingleNotificationGroup } from './notification.service';
 
 const HTTP_TYPE = 'http';
@@ -183,7 +188,7 @@ export const startCreateMonitor = (
     console.log('tcp', monitor.name, name);
   }
   if (type === MONGO_TYPE) {
-    console.log('mongo', monitor.name, name);
+    mongoStatusMonitor(monitor, toLower(name));
   }
   if (type === REDIS_TYPE) {
     console.log('redis', monitor.name, name);
@@ -197,7 +202,6 @@ export const deleteSingleMonitor = async (
 ) => {
   try {
     await deleteMonitorTypeHeartbeats(monitorId, type);
-
     await MonitorModel.destroy({ where: { id: monitorId } });
     const result = await getUserMonitors(userId);
     return result;
@@ -219,7 +223,7 @@ export const getHeartBeats = async (
     console.log('tcp');
   }
   if (type === MONGO_TYPE) {
-    console.log('mongo');
+    heartbeats = await getMongoHeartBeatsByDuration(monitorId, duration);
   }
   if (type === REDIS_TYPE) {
     console.log('redis');
@@ -234,6 +238,10 @@ export const deleteMonitorTypeHeartbeats = async (
   let model = null;
   if (type === HTTP_TYPE) {
     model = HttpModel;
+  }
+
+  if (type === MONGO_TYPE) {
+    model = MongoModel;
   }
 
   if (model !== null) {
