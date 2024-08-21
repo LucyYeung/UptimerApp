@@ -1,6 +1,7 @@
 import { pubSub } from '@app/graphql/resolvers/monitor';
 import { IHeartbeat } from '@app/interfaces/heartbeat.interface';
 import { IEmailLocals } from '@app/interfaces/notification.interface';
+import { ISSLMonitorDocument } from '@app/interfaces/ssl.interface';
 import { IAuthPayload } from '@app/interfaces/user.interface';
 import { CLIENT_URL, JWT_TOKEN } from '@app/server/config';
 import logger from '@app/server/logger';
@@ -10,6 +11,11 @@ import {
   getUserActiveMonitors,
   startCreateMonitor,
 } from '@app/services/monitor.service';
+import {
+  getAllUsersActiveSSLMonitors,
+  getSSLMonitorById,
+  sslStatusMonitor,
+} from '@app/services/ssl.service';
 import { Request } from 'express';
 import { GraphQLError } from 'graphql';
 import { verify } from 'jsonwebtoken';
@@ -78,9 +84,33 @@ export const startMonitors = async () => {
   }
 };
 
+/**
+ * Starts all active ssl monitors
+ * @returns {Promise<void>}
+ */
+export const startSSLMonitors = async (): Promise<void> => {
+  const list: ISSLMonitorDocument[] = await getAllUsersActiveSSLMonitors();
+
+  for (const monitor of list) {
+    sslStatusMonitor(monitor, toLower(monitor.name));
+    await sleep(getRandomInt(300, 1000));
+  }
+};
+
 export const resumeMonitor = async (monitorId: number) => {
   const monitor = await getMonitorById(monitorId);
   startCreateMonitor(monitor, toLower(monitor.name), monitor.type);
+  await sleep(getRandomInt(300, 1000));
+};
+
+/**
+ * Resumes a single ssl monitor
+ * @param monitorId
+ * @returns {Promise<void>}
+ */
+export const resumeSSLMonitors = async (monitorId: number): Promise<void> => {
+  const monitor: ISSLMonitorDocument = await getSSLMonitorById(monitorId);
+  sslStatusMonitor(monitor, toLower(monitor.name));
   await sleep(getRandomInt(300, 1000));
 };
 
