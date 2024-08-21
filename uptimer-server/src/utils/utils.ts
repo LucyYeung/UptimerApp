@@ -173,6 +173,24 @@ export const locals = (): IEmailLocals => {
   };
 };
 
+/**
+ * Get number of days between two dates
+ * @param {Date} start Start date
+ * @param {Date} end End date
+ * @returns {number} Number of days
+ */
+export const getDaysBetween = (start: Date, end: Date): number => {
+  return Math.round(Math.abs(+start - +end) / (1000 * 60 * 60 * 24));
+};
+
+export const getDaysRemaining = (start: Date, end: Date): number => {
+  const daysRemaining = getDaysBetween(start, end);
+  if (new Date(end).getTime() < new Date().getTime()) {
+    return -daysRemaining;
+  }
+  return daysRemaining;
+};
+
 export const getCookies = (cookie: string): Record<string, string> => {
   const cookies = cookie
     .split(';')
