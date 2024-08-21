@@ -1,7 +1,8 @@
 import { pubSub } from '@app/graphql/resolvers/monitor';
 import { IHeartbeat } from '@app/interfaces/heartbeat.interface';
+import { IEmailLocals } from '@app/interfaces/notification.interface';
 import { IAuthPayload } from '@app/interfaces/user.interface';
-import { JWT_TOKEN } from '@app/server/config';
+import { CLIENT_URL, JWT_TOKEN } from '@app/server/config';
 import logger from '@app/server/logger';
 import {
   getAllUsersActiveMonitors,
@@ -14,6 +15,7 @@ import { GraphQLError } from 'graphql';
 import { verify } from 'jsonwebtoken';
 import { toLower } from 'lodash';
 
+import { sendEmail } from './email';
 import { startSingleJob } from './jobs';
 
 export const appTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -119,6 +121,26 @@ export const uptimePercentage = (heartbeats: IHeartbeat[]): number => {
   return Math.round(
     ((totalHeartbeats - downtimeHeatbeats) / totalHeartbeats) * 100,
   );
+};
+
+export const emailSender = async (
+  notificationEmails: string,
+  template: string,
+  locals: IEmailLocals,
+) => {
+  const emails = JSON.parse(notificationEmails);
+
+  for (const email of emails) {
+    await sendEmail(template, email, locals);
+  }
+};
+
+export const locals = (): IEmailLocals => {
+  return {
+    appLink: CLIENT_URL,
+    appIcon: 'https://picsum.photos/id/0/200/60',
+    appName: '',
+  };
 };
 
 export const getCookies = (cookie: string): Record<string, string> => {
