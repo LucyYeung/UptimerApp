@@ -3,12 +3,14 @@ import {
   IMonitorDocument,
   IMonitorResponse,
 } from '@app/interfaces/monitor.interface';
+import { IEmailLocals } from '@app/interfaces/notification.interface';
 import logger from '@app/server/logger';
 import {
   getMonitorById,
   updateMonitorStatus,
 } from '@app/services/monitor.service';
 import { createTcpHeartBeat } from '@app/services/tcp.service';
+import { emailSender, locals } from '@app/utils/utils';
 import dayjs from 'dayjs';
 
 import { tcpPing } from './monitors';
@@ -17,9 +19,12 @@ class TcpMonitor {
   errorCount: number;
   noSuccessAlert: boolean;
 
+  emailsLocals: IEmailLocals;
+
   constructor() {
     this.errorCount = 0;
     this.noSuccessAlert = true;
+    this.emailsLocals = locals();
   }
 
   async start(data: IMonitorDocument) {
@@ -27,6 +32,7 @@ class TcpMonitor {
 
     try {
       const monitorData = await getMonitorById(monitorId!);
+      this.emailsLocals.appName = monitorData.name!;
       const response = await tcpPing(url!, port!, timeout!);
       this.assertionCheck(response, monitorData);
     } catch (error) {
@@ -74,7 +80,11 @@ class TcpMonitor {
       ) {
         this.errorCount = 0;
         this.noSuccessAlert = false;
-        // TODO: send error email
+        emailSender(
+          monitorData.notifications!.emails,
+          'errorStatus',
+          this.emailsLocals,
+        );
       }
     } else {
       await Promise.all([
@@ -85,7 +95,11 @@ class TcpMonitor {
       if (!this.noSuccessAlert) {
         this.errorCount = 0;
         this.noSuccessAlert = true;
-        // TODO: send success email
+        emailSender(
+          monitorData.notifications!.emails,
+          'successStatus',
+          this.emailsLocals,
+        );
       }
     }
   }
@@ -115,7 +129,11 @@ class TcpMonitor {
     ) {
       this.errorCount = 0;
       this.noSuccessAlert = false;
-      // TODO: send error email
+      emailSender(
+        monitorData.notifications!.emails,
+        'errorStatus',
+        this.emailsLocals,
+      );
     }
   }
 }
