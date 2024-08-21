@@ -1,6 +1,7 @@
 import { HeartbeatResolver } from './heartbeat';
 import { MonitorResolver } from './monitor';
 import { NotificationResovler } from './notification';
+import { SSLMonitorResolver } from './ssl';
 import { UserResolver } from './user';
 
 export const resolvers = [
@@ -8,4 +9,5 @@ export const resolvers = [
   NotificationResovler,
   MonitorResolver,
   HeartbeatResolver,
+  SSLMonitorResolver,
 ];
