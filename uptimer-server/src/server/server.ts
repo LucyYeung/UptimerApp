@@ -7,7 +7,11 @@ import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin
 import { resolvers } from '@app/graphql/resolvers';
 import { mergedGQLSchema } from '@app/graphql/schema';
 import { AppContext } from '@app/interfaces/monitor.interface';
-import { enableAutoRefreshJob, startMonitors } from '@app/utils/utils';
+import {
+  enableAutoRefreshJob,
+  startMonitors,
+  startSSLMonitors,
+} from '@app/utils/utils';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import cookieSession from 'cookie-session';
 import cors from 'cors';
@@ -155,6 +159,7 @@ export default class MonitorServer {
       this.httpServer.listen(SERVER_PORT, () => {
         logger.info(`Server running on port: ${SERVER_PORT}`);
         startMonitors();
+        startSSLMonitors();
       });
     } catch (error) {
       logger.info('error', 'startServer() error methods:', error);
