@@ -11,8 +11,6 @@ export const sendEmail = async (
   locals: IEmailLocals,
 ) => {
   try {
-    console.log(receiver);
-
     await emailTemplates(template, receiver, locals);
     logger.info(`Email sent successfully`);
   } catch (error) {
