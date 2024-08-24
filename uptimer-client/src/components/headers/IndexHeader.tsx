@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import Link from 'next/link';
 
@@ -8,6 +8,15 @@ import { FaAlignJustify, FaTimes, FaTv } from 'react-icons/fa';
 const IndexHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!headerRef.current) return;
+    const resizeObserver = new ResizeObserver(() => {
+      setMenuOpen(false);
+    });
+    resizeObserver.observe(headerRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   return (
     <div
