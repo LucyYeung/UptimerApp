@@ -1,17 +1,28 @@
-import React, { FC, ReactElement } from 'react';
+'use client';
+
+import React, { FC, ReactElement, useState } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { FaEye, FaFacebook, FaGoogle } from 'react-icons/fa';
+import clsx from 'clsx';
+import { FaEye, FaEyeSlash, FaFacebook, FaGoogle } from 'react-icons/fa';
 
 import Button from '@/components/Button';
+import PageLoader from '@/components/PageLoader';
 import TextInput from '@/components/TextInput';
 
+import { useRegister } from './useRegister';
+
 const Register: FC = (): ReactElement => {
+  const [passwordType, setPasswordType] = useState<string>('password');
+  const { loading, validationErrors, setValidationErrors, onRegisterSubmit } =
+    useRegister();
+
   return (
     <div className='relative mx-auto flex h-screen w-11/12 max-w-md flex-col rounded-lg bg-white md:w-2/3'>
-      <form>
+      {loading && <PageLoader />}
+      <form action={onRegisterSubmit}>
         <div className='mt-12 w-full px-5'>
           <div className='mb-5 flex flex-col justify-between text-gray-600'>
             <Link href='/' className='mx-auto mb-4 flex w-24 cursor-pointer'>
@@ -39,8 +50,19 @@ const Register: FC = (): ReactElement => {
               id='username'
               name='username'
               type='text'
-              className='mb-5 mt-2 flex h-10 w-full items-center rounded border border-gray-300 pl-3 text-sm font-normal text-gray-600 focus:border focus:border-sky-500/50 focus:outline-none'
+              className={clsx(
+                'mb-5 mt-2 flex h-10 w-full items-center rounded border border-gray-300 pl-3 text-sm font-normal text-gray-600 focus:border focus:border-sky-500/50 focus:outline-none',
+                {
+                  'border border-red-400': validationErrors?.username,
+                }
+              )}
               placeholder='Enter username'
+              onChange={() => {
+                setValidationErrors!({
+                  ...validationErrors!,
+                  username: '',
+                });
+              }}
             />
           </>
           <>
@@ -54,8 +76,17 @@ const Register: FC = (): ReactElement => {
               id='email'
               name='email'
               type='email'
-              className='mb-5 mt-2 flex h-10 w-full items-center rounded border border-gray-300 pl-3 text-sm font-normal text-gray-600 focus:border focus:border-sky-500/50 focus:outline-none'
+              className={clsx(
+                'mb-5 mt-2 flex h-10 w-full items-center rounded border border-gray-300 pl-3 text-sm font-normal text-gray-600 focus:border focus:border-sky-500/50 focus:outline-none',
+                { 'border border-red-400': validationErrors?.email }
+              )}
               placeholder='Enter email'
+              onChange={() => {
+                setValidationErrors!({
+                  ...validationErrors,
+                  email: '',
+                });
+              }}
             />
           </>
           <>
@@ -67,14 +98,35 @@ const Register: FC = (): ReactElement => {
             </label>
             <div className='relative mb-2 mt-2'>
               <div className='absolute right-0 flex h-full cursor-pointer items-center pr-3 text-gray-600'>
-                <FaEye className='icon icon-tabler icon-tabler-info-circle' />
+                {passwordType === 'password' ? (
+                  <FaEyeSlash
+                    onClick={() => setPasswordType('text')}
+                    className='icon icon-tabler icon-tabler-info-circle'
+                  />
+                ) : (
+                  <FaEye
+                    onClick={() => setPasswordType('password')}
+                    className='icon icon-tabler icon-tabler-info-circle'
+                  />
+                )}
               </div>
               <TextInput
                 id='password'
                 name='password'
-                type='password'
-                className='flex h-10 w-full items-center rounded border border-gray-300 pl-3 text-sm font-normal text-gray-600 focus:border focus:border-sky-500/50 focus:outline-none'
+                type={passwordType}
+                className={clsx(
+                  'flex h-10 w-full items-center rounded border border-gray-300 pl-3 text-sm font-normal text-gray-600 focus:border focus:border-sky-500/50 focus:outline-none',
+                  {
+                    'border border-red-400': validationErrors?.password,
+                  }
+                )}
                 placeholder='Enter password'
+                onChange={() => {
+                  setValidationErrors!({
+                    ...validationErrors!,
+                    password: '',
+                  });
+                }}
               />
             </div>
           </>
@@ -85,9 +137,9 @@ const Register: FC = (): ReactElement => {
           </div>
           <Button
             type='submit'
-            disabled={false}
+            disabled={loading}
             className='text-md block w-full cursor-pointer rounded bg-green-500 px-8 py-2 text-center font-bold text-white hover:bg-green-400 focus:outline-none'
-            label='CREATE FREE ACCOUNT'
+            label={loading ? 'ACCOUNT CREATING...' : 'CREATE FREE ACCOUNT'}
           />
         </div>
       </form>
