@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 
 import { apolloClient } from '@/queries/apolloClient';
 import ApolloProvider from '@/queries/apolloProvider';
+import { ToastContainer } from 'react-toastify';
 
 import './globals.css';
 
@@ -20,7 +21,10 @@ export default function RootLayout({
   return (
     <html lang='zh-TW'>
       <body className={inter.className}>
-        <ApolloProvider client={apolloClient}>{children}</ApolloProvider>
+        <ApolloProvider client={apolloClient}>
+          {children}
+          <ToastContainer />
+        </ApolloProvider>
       </body>
     </html>
   );
