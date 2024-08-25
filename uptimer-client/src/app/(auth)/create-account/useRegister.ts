@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { IUserAuth } from '@/interfaces/user.interface';
 import { REGISTER_USER } from '@/queries/auth';
+import { showErrorToast } from '@/utils/utils';
 import { FetchResult, useMutation } from '@apollo/client';
 
 import { RegisterType, registerSchema } from '../validations/auth';
@@ -42,9 +43,9 @@ export const useRegister = (): IUserAuth => {
           router.push('/');
         }
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      // TODO: Add toast method
-      console.log(error);
+      showErrorToast('Invalid credentials');
     }
   };
 
