@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { useRouter } from 'next/navigation';
@@ -8,9 +8,12 @@ import { REGISTER_USER } from '@/queries/auth';
 import { showErrorToast } from '@/utils/utils';
 import { FetchResult, useMutation } from '@apollo/client';
 
+import { MonitorContext } from '@/app/context/MonitorContext';
+
 import { RegisterType, registerSchema } from '../validations/auth';
 
 export const useRegister = (): IUserAuth => {
+  const { dispatch } = useContext(MonitorContext);
   const [validationErrors, setValidationErrors] = useState<RegisterType>({
     username: '',
     email: '',
@@ -39,7 +42,14 @@ export const useRegister = (): IUserAuth => {
         });
 
         if (result.data) {
-          // TODO: Add data to react context
+          const { registerUser } = result.data;
+          dispatch({
+            type: 'dataUpdate',
+            payload: {
+              user: registerUser.user,
+              notifications: registerUser.notifications,
+            },
+          });
           router.push('/');
         }
       }
