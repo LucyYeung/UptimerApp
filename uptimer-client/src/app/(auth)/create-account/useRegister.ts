@@ -10,11 +10,13 @@ import { FetchResult, useMutation } from '@apollo/client';
 
 import { MonitorContext } from '@/app/context/MonitorContext';
 
-import { RegisterType, registerSchema } from '../validations/auth';
+import { LoginType, RegisterType, registerSchema } from '../validations/auth';
 
 export const useRegister = (): IUserAuth => {
   const { dispatch } = useContext(MonitorContext);
-  const [validationErrors, setValidationErrors] = useState<RegisterType>({
+  const [validationErrors, setValidationErrors] = useState<
+    RegisterType | LoginType
+  >({
     username: '',
     email: '',
     password: '',

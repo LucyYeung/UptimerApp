@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
 
-import { RegisterType } from '@/app/(auth)/validations/auth';
+import { LoginType, RegisterType } from '@/app/(auth)/validations/auth';
 
 import { INotification } from './notification.interface';
 
@@ -20,8 +20,8 @@ export interface IUser {
 
 export interface IUserAuth {
   loading: boolean;
-  validationErrors?: RegisterType;
-  setValidationErrors?: Dispatch<SetStateAction<RegisterType>>;
+  validationErrors?: RegisterType | LoginType;
+  setValidationErrors?: Dispatch<SetStateAction<RegisterType | LoginType>>;
   onRegisterSubmit?: (formData: FormData) => void;
   onLoginSubmit?: (formData: FormData) => void;
   authWithGoogle?: (formData: FormData) => void;
