@@ -4,12 +4,19 @@ import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.share
 import { useRouter } from 'next/navigation';
 
 import { IUserAuth } from '@/interfaces/user.interface';
-import { REGISTER_USER } from '@/queries/auth';
+import { AUTH_SOCIAL_USER, REGISTER_USER } from '@/queries/auth';
 import { showErrorToast } from '@/utils/utils';
 import { FetchResult, useMutation } from '@apollo/client';
+import {
+  Auth,
+  GoogleAuthProvider,
+  getAuth,
+  signInWithPopup,
+} from 'firebase/auth';
 
 import { MonitorContext } from '@/app/context/MonitorContext';
 
+import firebaseApp from '../firebase';
 import { LoginType, RegisterType, registerSchema } from '../validations/auth';
 
 export const useRegister = (): IUserAuth => {
@@ -66,5 +73,49 @@ export const useRegister = (): IUserAuth => {
     validationErrors,
     setValidationErrors,
     onRegisterSubmit,
+  };
+};
+
+export const useSocialRegister = (): IUserAuth => {
+  const { dispatch } = useContext(MonitorContext);
+  const router: AppRouterInstance = useRouter();
+  const [authSocialUser, { loading }] = useMutation(AUTH_SOCIAL_USER);
+
+  const registerWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    const auth: Auth = getAuth(firebaseApp);
+    auth.useDeviceLanguage();
+    const userCredential = await signInWithPopup(auth, provider);
+
+    const nameList = userCredential.user.displayName?.split(' ');
+    const data = {
+      username: nameList?.[0] ?? '',
+      email: userCredential.user.email ?? '',
+      socialId: userCredential.user.uid,
+      type: 'google',
+    };
+
+    const result: FetchResult = await authSocialUser({
+      variables: {
+        user: data,
+      },
+    });
+
+    if (result.data) {
+      const { authSocialUser } = result.data;
+      dispatch({
+        type: 'dataUpdate',
+        payload: {
+          user: authSocialUser.user,
+          notifications: authSocialUser.notifications,
+        },
+      });
+      router.push('/');
+    }
+  };
+
+  return {
+    loading,
+    authWithGoogle: registerWithGoogle,
   };
 };
