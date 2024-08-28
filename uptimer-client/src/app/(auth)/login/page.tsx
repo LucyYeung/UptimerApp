@@ -12,16 +12,22 @@ import Button from '@/components/Button';
 import PageLoader from '@/components/PageLoader';
 import TextInput from '@/components/TextInput';
 
-import { useLogin } from './useLogin';
+import { useLogin, useSocialLogin } from './useLogin';
 
 const Login: FC = (): ReactElement => {
   const [passwordType, setPasswordType] = useState<string>('password');
   const { loading, validationErrors, setValidationErrors, onLoginSubmit } =
     useLogin();
 
+  const {
+    loading: socialAuthLoading,
+    authWithGoogle,
+    authWithFacebook,
+  } = useSocialLogin();
+
   return (
     <div className='relative mx-auto flex h-screen w-11/12 max-w-md flex-col rounded-lg bg-white md:w-2/3'>
-      {loading && <PageLoader />}
+      {socialAuthLoading && <PageLoader />}
       <form action={onLoginSubmit}>
         <div className='mt-12 w-full px-5'>
           <div className='mb-5 flex flex-col justify-between text-gray-600'>
@@ -128,12 +134,14 @@ const Login: FC = (): ReactElement => {
           icon={<FaGoogle className='-ml-1 mr-2 h-4 w-4' />}
           className='text-md inline-flex w-full cursor-pointer items-center justify-center rounded bg-[#4285F4] px-8 py-2 text-center font-bold text-white hover:bg-[#4285F4]/90 focus:outline-none'
           label='Sign in with Google'
+          onClick={authWithGoogle}
         />
         <Button
           type='button'
           icon={<FaFacebook className='-ml-1 mr-2 h-4 w-4' />}
           className='text-md mt-4 inline-flex w-full cursor-pointer items-center justify-center rounded bg-[#3b5998] px-8 py-2 text-center font-bold text-white hover:bg-[#3b5998]/90 focus:outline-none'
           label='Sign in with Facebook'
+          onClick={authWithFacebook}
         />
       </div>
     </div>
