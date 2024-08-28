@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 
 import { MonitorContext } from '@/context/MonitorContext';
 import { apolloPersistor } from '@/queries/apolloClient';
-import { CHECK_CURRENT_USER } from '@/queries/auth';
-import { useQuery } from '@apollo/client';
+import { CHECK_CURRENT_USER, LOGOUT_USER } from '@/queries/auth';
+import { useMutation, useQuery } from '@apollo/client';
 
 import PageLoader from './PageLoader';
 
@@ -21,17 +21,21 @@ type NavigateProps = {
 const Navigate = ({ to, type }: NavigateProps): null => {
   const router = useRouter();
   const { dispatch } = useContext(MonitorContext);
+  const [logout, { client }] = useMutation(LOGOUT_USER);
 
   useEffect(() => {
     if (type === 'logout') {
-      dispatch({
-        type: 'dataUpdate',
-        payload: { user: null, notifications: [] },
+      logout().then(async () => {
+        dispatch({
+          type: 'dataUpdate',
+          payload: { user: null, notifications: [] },
+        });
+        client.clearStore();
+        await apolloPersistor?.purge();
       });
-      apolloPersistor?.purge();
     }
     router.push(to);
-  }, [to, type, dispatch, router]);
+  }, [to, type, dispatch, router, client, logout]);
 
   return null;
 };

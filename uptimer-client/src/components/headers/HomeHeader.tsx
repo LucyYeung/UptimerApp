@@ -1,12 +1,18 @@
-import { FC, ReactElement, useState } from 'react';
+import { FC, ReactElement, useContext, useState } from 'react';
 
 import Link from 'next/link';
 
+import { MonitorContext } from '@/context/MonitorContext';
+import { apolloPersistor } from '@/queries/apolloClient';
+import { LOGOUT_USER } from '@/queries/auth';
+import { useMutation } from '@apollo/client';
 import clsx from 'clsx';
 import { FaAlignJustify, FaTimes, FaUserAlt } from 'react-icons/fa';
 
 const HomeHeader: FC = (): ReactElement => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const { dispatch } = useContext(MonitorContext);
+  const [logout, { client }] = useMutation(LOGOUT_USER);
 
   return (
     <div className='relative z-40 mt-1 w-full border-b border-[#e5f3ff] py-2.5'>
@@ -77,6 +83,17 @@ const HomeHeader: FC = (): ReactElement => {
                           !menuOpen,
                       }
                     )}
+                    onClick={async () => {
+                      dispatch({
+                        type: 'dataUpdate',
+                        payload: { user: null, notifications: [] },
+                      });
+                      await Promise.all([
+                        client.clearStore(),
+                        logout(),
+                        apolloPersistor?.purge(),
+                      ]);
+                    }}
                   >
                     <FaUserAlt />
                     <Link href='/' className={clsx('', { 'ml-4': menuOpen })}>
