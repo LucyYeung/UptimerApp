@@ -1,18 +1,38 @@
-import { FC, ReactElement, useContext, useState } from 'react';
+import { FC, ReactElement, useContext, useEffect, useState } from 'react';
 
 import Link from 'next/link';
 
 import { MonitorContext } from '@/context/MonitorContext';
-import { apolloPersistor } from '@/queries/apolloClient';
-import { LOGOUT_USER } from '@/queries/auth';
+import { IUser } from '@/interfaces/user.interface';
+import { apolloClient, apolloPersistor } from '@/queries/apolloClient';
+import { CHECK_CURRENT_USER, LOGOUT_USER } from '@/queries/auth';
 import { useMutation } from '@apollo/client';
 import clsx from 'clsx';
 import { FaAlignJustify, FaTimes, FaUserAlt } from 'react-icons/fa';
+
+import Sidebar from '../sidebar/Sidebar';
 
 const HomeHeader: FC = (): ReactElement => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const { dispatch } = useContext(MonitorContext);
   const [logout, { client }] = useMutation(LOGOUT_USER);
+  const [user, setUser] = useState<IUser>();
+  const userData = apolloClient.readQuery({ query: CHECK_CURRENT_USER });
+
+  useEffect(() => {
+    if (userData) {
+      setUser(userData.checkCurrentUser.user);
+    }
+  }, [userData]);
+
+  const renderSkeleton = (): JSX.Element => {
+    return (
+      <>
+        <li className='relative z-50 ml-auto flex cursor-pointer items-center justify-center rounded-full bg-[#f0f0f0] px-20 py-5 font-bold text-white'></li>
+        <li className='relative z-50 ml-auto flex cursor-pointer items-center justify-center rounded-full bg-[#f0f0f0] px-20 py-5 font-bold text-white'></li>
+      </>
+    );
+  };
 
   return (
     <div className='relative z-40 mt-1 w-full border-b border-[#e5f3ff] py-2.5'>
@@ -58,49 +78,55 @@ const HomeHeader: FC = (): ReactElement => {
                   'gap-4': !menuOpen,
                 })}
               >
-                <>
-                  <li
-                    className={clsx(
-                      'z-50 flex cursor-pointer items-center font-bold',
-                      {
-                        'py-2.5 text-[15px] text-[#333333]': menuOpen,
-                        'gap-1': !menuOpen,
-                      }
-                    )}
-                  >
-                    <FaUserAlt />
-                    <div className={clsx('', { 'ml-4': menuOpen })}>
-                      Username
-                    </div>
-                  </li>
-                  <li className='lg:hidden'>Sidebar</li>
-                  <li
-                    className={clsx(
-                      'relative z-50 flex cursor-pointer items-center rounded-full font-bold',
-                      {
-                        'mt-5 text-[15px] text-[#333333]': menuOpen,
-                        'ml-auto h-9 justify-center gap-1 bg-green-500 font-bold text-white hover:bg-green-400 sm:px-6':
-                          !menuOpen,
-                      }
-                    )}
-                    onClick={async () => {
-                      dispatch({
-                        type: 'dataUpdate',
-                        payload: { user: null, notifications: [] },
-                      });
-                      await Promise.all([
-                        client.clearStore(),
-                        logout(),
-                        apolloPersistor?.purge(),
-                      ]);
-                    }}
-                  >
-                    <FaUserAlt />
-                    <Link href='/' className={clsx('', { 'ml-4': menuOpen })}>
-                      Logout
-                    </Link>
-                  </li>
-                </>
+                {!user ? (
+                  <>{renderSkeleton()}</>
+                ) : (
+                  <>
+                    <li
+                      className={clsx(
+                        'z-50 flex cursor-pointer items-center font-bold',
+                        {
+                          'py-2.5 text-[15px] text-[#333333]': menuOpen,
+                          'gap-1': !menuOpen,
+                        }
+                      )}
+                    >
+                      <FaUserAlt />
+                      <div className={clsx('', { 'ml-4': menuOpen })}>
+                        {user.username}
+                      </div>
+                    </li>
+                    <li className='lg:hidden'>
+                      <Sidebar type='header' />
+                    </li>
+                    <li
+                      className={clsx(
+                        'relative z-50 flex cursor-pointer items-center rounded-full font-bold',
+                        {
+                          'mt-5 text-[15px] text-[#333333]': menuOpen,
+                          'ml-auto h-9 justify-center gap-1 bg-green-500 font-bold text-white hover:bg-green-400 sm:px-6':
+                            !menuOpen,
+                        }
+                      )}
+                      onClick={async () => {
+                        dispatch({
+                          type: 'dataUpdate',
+                          payload: { user: null, notifications: [] },
+                        });
+                        await Promise.all([
+                          client.clearStore(),
+                          logout(),
+                          apolloPersistor?.purge(),
+                        ]);
+                      }}
+                    >
+                      <FaUserAlt />
+                      <Link href='/' className={clsx('', { 'ml-4': menuOpen })}>
+                        Logout
+                      </Link>
+                    </li>
+                  </>
+                )}
               </ul>
             </div>
           </div>
