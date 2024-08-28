@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { Dispatch, useContext, useState } from 'react';
 
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { useRouter } from 'next/navigation';
@@ -6,7 +6,11 @@ import { useRouter } from 'next/navigation';
 import { IUserAuth } from '@/interfaces/user.interface';
 import { AUTH_SOCIAL_USER, REGISTER_USER } from '@/queries/auth';
 import { showErrorToast } from '@/utils/utils';
-import { FetchResult, useMutation } from '@apollo/client';
+import {
+  FetchResult,
+  MutationFunctionOptions,
+  useMutation,
+} from '@apollo/client';
 import {
   Auth,
   GoogleAuthProvider,
@@ -14,7 +18,7 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 
-import { MonitorContext } from '@/app/context/MonitorContext';
+import { DispatchProps, MonitorContext } from '@/app/context/MonitorContext';
 
 import firebaseApp from '../firebase';
 import { LoginType, RegisterType, registerSchema } from '../validations/auth';
@@ -44,23 +48,7 @@ export const useRegister = (): IUserAuth => {
           password: resultSchema.error.format().password?._errors[0],
         });
       } else {
-        const result: FetchResult = await registerUser({
-          variables: {
-            user: resultSchema.data,
-          },
-        });
-
-        if (result.data) {
-          const { registerUser } = result.data;
-          dispatch({
-            type: 'dataUpdate',
-            payload: {
-              user: registerUser.user,
-              notifications: registerUser.notifications,
-            },
-          });
-          router.push('/');
-        }
+        submitUserData(resultSchema.data, registerUser, dispatch, router);
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
@@ -95,27 +83,45 @@ export const useSocialRegister = (): IUserAuth => {
       type: 'google',
     };
 
-    const result: FetchResult = await authSocialUser({
-      variables: {
-        user: data,
-      },
-    });
-
-    if (result.data) {
-      const { authSocialUser } = result.data;
-      dispatch({
-        type: 'dataUpdate',
-        payload: {
-          user: authSocialUser.user,
-          notifications: authSocialUser.notifications,
-        },
-      });
-      router.push('/');
-    }
+    submitUserData(data, authSocialUser, dispatch, router);
   };
 
   return {
     loading,
     authWithGoogle: registerWithGoogle,
   };
+};
+
+const submitUserData = async (
+  data: RegisterType,
+  registerUserMethod: (
+    options?: MutationFunctionOptions | undefined
+  ) => Promise<FetchResult>,
+  dispatch: Dispatch<DispatchProps>,
+  router: AppRouterInstance
+) => {
+  try {
+    const result: FetchResult = await registerUserMethod({
+      variables: {
+        user: data,
+      },
+    });
+
+    if (result.data) {
+      const { registerUser, authSocialUser } = result.data;
+      dispatch({
+        type: 'dataUpdate',
+        payload: {
+          user: registerUser ? registerUser.user : authSocialUser.user,
+          notifications: registerUser
+            ? registerUser.notifications
+            : authSocialUser.notifications,
+        },
+      });
+      router.push('/');
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    showErrorToast('Invalid credentials');
+  }
 };
