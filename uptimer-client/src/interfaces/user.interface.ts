@@ -24,6 +24,6 @@ export interface IUserAuth {
   setValidationErrors?: Dispatch<SetStateAction<RegisterType | LoginType>>;
   onRegisterSubmit?: (formData: FormData) => void;
   onLoginSubmit?: (formData: FormData) => void;
-  authWithGoogle?: (formData: FormData) => void;
-  authWithFacebook?: (formData: FormData) => void;
+  authWithGoogle?: () => void;
+  authWithFacebook?: () => void;
 }
