@@ -38,22 +38,15 @@ export const useRegister = (): IUserAuth => {
   const [registerUser, { loading }] = useMutation(REGISTER_USER);
 
   const onRegisterSubmit = async (formData: FormData) => {
-    try {
-      const resultSchema = registerSchema.safeParse(
-        Object.fromEntries(formData)
-      );
-      if (!resultSchema.success) {
-        setValidationErrors({
-          username: resultSchema.error.format().username?._errors[0],
-          email: resultSchema.error.format().email?._errors[0] ?? '',
-          password: resultSchema.error.format().password?._errors[0],
-        });
-      } else {
-        submitUserData(resultSchema.data, registerUser, dispatch, router);
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      showErrorToast('Invalid credentials');
+    const resultSchema = registerSchema.safeParse(Object.fromEntries(formData));
+    if (!resultSchema.success) {
+      setValidationErrors({
+        username: resultSchema.error.format().username?._errors[0],
+        email: resultSchema.error.format().email?._errors[0] ?? '',
+        password: resultSchema.error.format().password?._errors[0],
+      });
+    } else {
+      submitUserData(resultSchema.data, registerUser, dispatch, router);
     }
   };
 
