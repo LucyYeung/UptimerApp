@@ -136,7 +136,7 @@ const submitUserData = async (
             : loginUser.notifications,
         },
       });
-      router.push('/');
+      router.push('/status');
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
