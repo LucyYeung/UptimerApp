@@ -13,6 +13,7 @@ import {
 } from '@apollo/client';
 import {
   Auth,
+  FacebookAuthProvider,
   GoogleAuthProvider,
   getAuth,
   signInWithPopup,
@@ -86,9 +87,27 @@ export const useSocialRegister = (): IUserAuth => {
     submitUserData(data, authSocialUser, dispatch, router);
   };
 
+  const registerWithFacebook = async () => {
+    const provider = new FacebookAuthProvider();
+    const auth: Auth = getAuth(firebaseApp);
+    auth.useDeviceLanguage();
+    const userCredential = await signInWithPopup(auth, provider);
+
+    const nameList = userCredential.user.displayName?.split(' ');
+    const data = {
+      username: nameList?.[0] ?? '',
+      email: userCredential.user.email ?? '',
+      socialId: userCredential.user.uid,
+      type: 'facebook',
+    };
+
+    submitUserData(data, authSocialUser, dispatch, router);
+  };
+
   return {
     loading,
     authWithGoogle: registerWithGoogle,
+    authWithFacebook: registerWithFacebook,
   };
 };
 

@@ -18,11 +18,15 @@ const Register: FC = (): ReactElement => {
   const [passwordType, setPasswordType] = useState<string>('password');
   const { loading, validationErrors, setValidationErrors, onRegisterSubmit } =
     useRegister();
-  const { loading: googleLoading, authWithGoogle } = useSocialRegister();
+  const {
+    loading: socialAuthLoading,
+    authWithGoogle,
+    authWithFacebook,
+  } = useSocialRegister();
 
   return (
     <div className='relative mx-auto flex h-screen w-11/12 max-w-md flex-col rounded-lg bg-white md:w-2/3'>
-      {googleLoading && <PageLoader />}
+      {socialAuthLoading && <PageLoader />}
       <form action={onRegisterSubmit}>
         <div className='mt-12 w-full px-5'>
           <div className='mb-5 flex flex-col justify-between text-gray-600'>
@@ -162,6 +166,7 @@ const Register: FC = (): ReactElement => {
           icon={<FaFacebook className='-ml-1 mr-2 h-4 w-4' />}
           className='text-md mt-4 inline-flex w-full cursor-pointer items-center justify-center rounded bg-[#3b5998] px-8 py-2 text-center font-bold text-white hover:bg-[#3b5998]/90 focus:outline-none'
           label='Sign in with Facebook'
+          onClick={authWithFacebook}
         />
       </div>
     </div>
