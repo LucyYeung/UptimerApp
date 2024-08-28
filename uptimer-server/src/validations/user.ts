@@ -26,7 +26,7 @@ const email = string()
   .email('This is invalid email.');
 const password = string()
   .optional()
-  .min(5, 'Password should have at least 5 characters.')
+  .min(4, 'Password should have at least 4 characters.')
   .max(10, 'Password should have at most 10 characters.');
 const googleId = string().optional();
 const facebookId = string().optional();
