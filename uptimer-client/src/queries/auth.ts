@@ -34,3 +34,21 @@ export const LOGIN_USER = gql`
     }
   }
 `;
+
+export const AUTH_SOCIAL_USER = gql`
+  mutation AuthSocialUser($user: Auth!) {
+    authSocialUser(user: $user) {
+      user {
+        id
+        username
+        email
+      }
+      notifications {
+        id
+        userId
+        groupName
+        emails
+      }
+    }
+  }
+`;
