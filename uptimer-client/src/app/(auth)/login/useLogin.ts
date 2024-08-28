@@ -3,6 +3,7 @@ import { Dispatch, useContext, useState } from 'react';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { useRouter } from 'next/navigation';
 
+import { DispatchProps, MonitorContext } from '@/context/MonitorContext';
 import { IUserAuth } from '@/interfaces/user.interface';
 import { AUTH_SOCIAL_USER, LOGIN_USER } from '@/queries/auth';
 import { showErrorToast } from '@/utils/utils';
@@ -18,8 +19,6 @@ import {
   getAuth,
   signInWithPopup,
 } from 'firebase/auth';
-
-import { DispatchProps, MonitorContext } from '@/app/context/MonitorContext';
 
 import firebaseApp from '../firebase';
 import { LoginType, loginSchema } from '../validations/auth';

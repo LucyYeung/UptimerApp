@@ -5,7 +5,7 @@ import { apolloClient } from '@/queries/apolloClient';
 import ApolloProvider from '@/queries/apolloProvider';
 import { ToastContainer } from 'react-toastify';
 
-import { MonitorProvider } from './context/MonitorContext';
+import { MonitorProvider } from '../context/MonitorContext';
 
 import './globals.css';
 
