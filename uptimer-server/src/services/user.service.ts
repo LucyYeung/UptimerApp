@@ -47,8 +47,8 @@ export const getUserBySocialId = async (
             ...(type === 'facebook' && { facebookId: socialId }),
             ...(type === 'google' && { googleId: socialId }),
           },
+          { email: toLower(email) },
         ],
-        email: toLower(email),
       },
     })) as unknown as IUserDocument;
     return user;
