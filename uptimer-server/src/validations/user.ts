@@ -8,18 +8,16 @@ const loginUsername = string()
       return isEmail(value)
         ? string().email('This is invalid email.').isValidSync(value)
         : string()
-            .min(4, 'Username should have at least 4 characters.')
+            .min(2, 'Username should have at least 2 characters.')
             .max(20, 'Username should have at most 20 characters.')
-            .matches(/^\w+$/, 'Should be alphanumeric.')
             .isValidSync(value);
     }
     return true;
   });
 const username = string()
   .required('Username is required.')
-  .min(4, 'Username should have at least 4 characters.')
+  .min(2, 'Username should have at least 2 characters.')
   .max(20, 'Username should have at most 20 characters.')
-  .matches(/^\w+$/, 'Should be alphanumeric.')
   .optional();
 const email = string()
   .required('Email is required.')
