@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 
 export const showSuccessToast = (message: string) => {
@@ -48,4 +49,11 @@ export const convertFrequency = (frequency: number): string => {
     return `${minute} mins`;
   }
   return `${frequency}s`;
+};
+
+export const timeFromNow = (date: string) => {
+  if (date === 'null') {
+    return 'None';
+  }
+  return dayjs(new Date(JSON.parse(date))).fromNow();
 };

@@ -4,7 +4,7 @@ import {
   HomeTableProps,
   IMonitorDocument,
 } from '@/interfaces/monitor.interface';
-import { convertFrequency } from '@/utils/utils';
+import { convertFrequency, timeFromNow } from '@/utils/utils';
 import clsx from 'clsx';
 import { upperCase } from 'lodash';
 import { FaArrowDown, FaArrowUp, FaCircleNotch, FaPlay } from 'react-icons/fa';
@@ -112,7 +112,11 @@ const HomeTable: FC<HomeTableProps> = ({
                   {convertFrequency(monitor.frequency)}
                 </td>
                 <td className='max-w-[270px] truncate text-ellipsis whitespace-nowrap px-6 py-4'>
-                  {monitor.lastChanged ? <>{monitor.lastChanged}</> : 'None'}
+                  {monitor.lastChanged ? (
+                    <>{timeFromNow(`${monitor.lastChanged}`)}</>
+                  ) : (
+                    'None'
+                  )}
                 </td>
                 <td className='px-6 py-4'>
                   <HomeTableBtnGroup monitor={monitor} />
