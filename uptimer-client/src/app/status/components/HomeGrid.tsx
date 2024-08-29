@@ -8,6 +8,7 @@ import clsx from 'clsx';
 import { FaArrowDown, FaArrowUp, FaCircleNotch, FaPlay } from 'react-icons/fa';
 
 import Button from '@/components/Button';
+import ResponseChart from '@/components/ResponseChart';
 
 import HomeTableBtnGroup from './HomeTableBtnGroup';
 
@@ -60,7 +61,10 @@ const HomeGrid: FC<HomeTableProps> = ({
                 <span className='mb-2 text-sm font-bold'>
                   Response Times (ms)
                 </span>
-                Chart Area
+                <ResponseChart
+                  heartBeats={monitor.heartbeats!}
+                  showLabel={false}
+                />
               </div>
               <div className='mt-3'>
                 <Feature title='Status'>
