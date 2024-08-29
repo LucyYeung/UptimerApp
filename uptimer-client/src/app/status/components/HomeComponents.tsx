@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction } from 'react';
 import {
   IMonitorDocument,
   IMonitorState,
+  IPagination,
 } from '@/interfaces/monitor.interface';
 import clsx from 'clsx';
 import { FaBorderAll, FaPause, FaPlay } from 'react-icons/fa';
@@ -11,6 +12,8 @@ import Button from '@/components/Button';
 import TextInput from '@/components/TextInput';
 
 import HomeButtonGroup from './HomeButtonGroup';
+import HomeGrid from './HomeGrid';
+import HomeTable from './HomeTable';
 
 export const renderButtons = (
   monitors: IMonitorDocument[],
@@ -71,6 +74,31 @@ export const renderRefreshButtons = (
           />
         </div>
       </div>
+    </div>
+  );
+};
+
+export const renderTableAndPagination = (
+  view: string,
+  limit: IPagination,
+  autoRefreshLoading: boolean,
+  monitors: IMonitorDocument[]
+): JSX.Element => {
+  return (
+    <div className='my-4'>
+      {view === 'box' ? (
+        <HomeTable
+          monitors={monitors}
+          limit={limit}
+          autoRefreshLoading={autoRefreshLoading}
+        />
+      ) : (
+        <HomeGrid
+          monitors={monitors}
+          limit={limit}
+          autoRefreshLoading={autoRefreshLoading}
+        />
+      )}
     </div>
   );
 };
