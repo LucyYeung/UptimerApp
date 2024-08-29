@@ -8,6 +8,8 @@ import clsx from 'clsx';
 import { upperCase } from 'lodash';
 import { FaArrowDown, FaArrowUp, FaCircleNotch, FaPlay } from 'react-icons/fa';
 
+import HealthBar from '@/components/HealthBar';
+
 import HomeTableBtnGroup from './HomeTableBtnGroup';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -103,6 +105,7 @@ const HomeTable: FC<HomeTableProps> = ({
                 </td>
                 <td className='flex gap-3 px-6 py-5'>
                   <div className='w-8'>{monitor.uptime}%</div>
+                  <HealthBar size='small' heartBeats={monitor.heartbeats!} />
                 </td>
                 <td className='px-6 py-5'>{monitor.frequency}</td>
                 <td className='max-w-[270px] truncate text-ellipsis whitespace-nowrap px-6 py-4'>
