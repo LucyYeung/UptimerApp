@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google';
 
 import { apolloClient } from '@/queries/apolloClient';
 import ApolloProvider from '@/queries/apolloProvider';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { ToastContainer } from 'react-toastify';
 
 import { MonitorProvider } from '../context/MonitorContext';
@@ -10,6 +12,8 @@ import { MonitorProvider } from '../context/MonitorContext';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
+
+dayjs.extend(relativeTime);
 
 export const metadata: Metadata = {
   title: 'Uptimer',
