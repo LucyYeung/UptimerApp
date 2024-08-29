@@ -7,13 +7,17 @@ import {
   IPagination,
   IUseHome,
 } from '@/interfaces/monitor.interface';
-import { ENABLE_AUTO_REFRESH, GET_USER_MONITORS } from '@/queries/status';
+import {
+  ENABLE_AUTO_REFRESH,
+  GET_USER_MONITORS,
+  MONITORS_UPDATED,
+} from '@/queries/status';
 import {
   getLocalStorageItem,
   setLocalStorageItem,
   showErrorToast,
 } from '@/utils/utils';
-import { useLazyQuery, useQuery } from '@apollo/client';
+import { useLazyQuery, useQuery, useSubscription } from '@apollo/client';
 import { some } from 'lodash';
 
 export const useHome = (): IUseHome => {
@@ -49,6 +53,37 @@ export const useHome = (): IUseHome => {
       fetchPolicy: 'network-only',
     }
   );
+
+  useSubscription(MONITORS_UPDATED, {
+    onData: ({ client, data }) => {
+      const { userId, monitors } = data.data.monitorsUpdated;
+      if (userId === user?.id) {
+        setMonitorState((prevState: IMonitorState) => ({
+          ...prevState,
+          autoRefreshLoading: true,
+        }));
+        autoMonitorsRef.current = monitors;
+        client.cache.updateQuery(
+          {
+            query: GET_USER_MONITORS,
+          },
+          () => {
+            return {
+              getUserMonitors: {
+                __typename: 'MonitorResponse',
+                monitors,
+              },
+            };
+          }
+        );
+      } else {
+        setMonitorState((prevState: IMonitorState) => ({
+          ...prevState,
+          autoRefreshLoading: false,
+        }));
+      }
+    },
+  });
 
   const storageViewItem: string = getLocalStorageItem('view');
   const isRefreshed: boolean = JSON.parse(getLocalStorageItem('refresh'));
@@ -141,7 +176,28 @@ export const useHome = (): IUseHome => {
         enableRefresh: refreshData.autoRefresh.refresh,
       }));
     }
-  }, [data, refreshData, setMonitors, setMonitorState]);
+
+    if (autoMonitorsRef.current.length > 0) {
+      autoMonitorsRef.current = [];
+      setMonitorState((prevState: IMonitorState) => ({
+        ...prevState,
+        autoRefreshLoading: true,
+      }));
+    } else {
+      setTimeout(() => {
+        setMonitorState((prevState: IMonitorState) => ({
+          ...prevState,
+          autoRefreshLoading: false,
+        }));
+      }, 1000);
+    }
+  }, [
+    data,
+    refreshData,
+    setMonitors,
+    setMonitorState,
+    autoMonitorsRef.current,
+  ]);
 
   return {
     monitorState,
