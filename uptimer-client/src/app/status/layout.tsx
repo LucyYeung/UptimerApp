@@ -8,7 +8,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 const StatusLayout = ({ children }: { children: ReactNode }) => {
   return (
     <ProtectedRoute>
-      <LayoutBody>{children}</LayoutBody>;
+      <LayoutBody>{children}</LayoutBody>
     </ProtectedRoute>
   );
 };
