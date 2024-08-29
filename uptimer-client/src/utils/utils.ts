@@ -37,3 +37,15 @@ export const getLocalStorageItem = (key: string) => {
     return JSON.parse(localStorage.getItem(key) as string);
   }
 };
+
+export const convertFrequency = (frequency: number): string => {
+  const hour = frequency / (60 * 60);
+  const minute = frequency / 60;
+  if (hour >= 1) {
+    return `${hour} hours`;
+  }
+  if (minute >= 1 && minute < 60) {
+    return `${minute} mins`;
+  }
+  return `${frequency}s`;
+};

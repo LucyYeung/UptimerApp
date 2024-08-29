@@ -4,6 +4,7 @@ import {
   HomeTableProps,
   IMonitorDocument,
 } from '@/interfaces/monitor.interface';
+import { convertFrequency } from '@/utils/utils';
 import clsx from 'clsx';
 import { upperCase } from 'lodash';
 import { FaArrowDown, FaArrowUp, FaCircleNotch, FaPlay } from 'react-icons/fa';
@@ -107,7 +108,9 @@ const HomeTable: FC<HomeTableProps> = ({
                   <div className='w-8'>{monitor.uptime}%</div>
                   <HealthBar size='small' heartBeats={monitor.heartbeats!} />
                 </td>
-                <td className='px-6 py-5'>{monitor.frequency}</td>
+                <td className='px-6 py-5'>
+                  {convertFrequency(monitor.frequency)}
+                </td>
                 <td className='max-w-[270px] truncate text-ellipsis whitespace-nowrap px-6 py-4'>
                   {monitor.lastChanged ? <>{monitor.lastChanged}</> : 'None'}
                 </td>
