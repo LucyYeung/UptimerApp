@@ -25,3 +25,15 @@ export const showErrorToast = (message: string) => {
     theme: 'colored',
   });
 };
+
+export const setLocalStorageItem = (key: string, value: string) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(key, value);
+  }
+};
+
+export const getLocalStorageItem = (key: string) => {
+  if (typeof window !== 'undefined') {
+    return JSON.parse(localStorage.getItem(key) as string);
+  }
+};
