@@ -36,13 +36,13 @@ const HomeButtonGroup: FC<IHomeButtonGroupProps> = ({
         className='mr-1 inline-flex items-center rounded bg-green-400 px-4 py-2 text-sm font-bold text-white'
       />
       <Button
-        label={count('inactive')}
+        label={count('error')}
         icon={<FaArrowDown className='mr-1' />}
         type='button'
         className='mr-1 inline-flex items-center rounded bg-red-400 px-4 py-2 text-sm font-bold text-white'
       />
       <Button
-        label={count('error')}
+        label={count('inactive')}
         icon={<FaPlay className='mr-1' />}
         type='button'
         className='mr-1 inline-flex items-center rounded bg-yellow-400 px-4 py-2 text-sm font-bold text-white'
