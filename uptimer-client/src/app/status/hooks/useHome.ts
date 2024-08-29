@@ -1,0 +1,165 @@
+import { useContext, useEffect, useRef, useState } from 'react';
+
+import { MonitorContext } from '@/context/MonitorContext';
+import {
+  IMonitorDocument,
+  IMonitorState,
+  IPagination,
+  IUseHome,
+} from '@/interfaces/monitor.interface';
+import { ENABLE_AUTO_REFRESH, GET_USER_MONITORS } from '@/queries/status';
+import {
+  getLocalStorageItem,
+  setLocalStorageItem,
+  showErrorToast,
+} from '@/utils/utils';
+import { useLazyQuery, useQuery } from '@apollo/client';
+import { some } from 'lodash';
+
+export const useHome = (): IUseHome => {
+  const {
+    state: { user },
+  } = useContext(MonitorContext);
+  const [monitors, setMonitors] = useState<IMonitorDocument[]>([]);
+  const [monitorState, setMonitorState] = useState<IMonitorState>({
+    showModal: false,
+    enableRefresh: false,
+    autoRefreshLoading: false,
+  });
+  const [view, setView] = useState<string>('');
+  const monitorsRef = useRef<IMonitorDocument[]>([]);
+  const autoMonitorsRef = useRef<IMonitorDocument[]>([]);
+
+  const { data, loading } = useQuery(GET_USER_MONITORS, {
+    fetchPolicy: 'network-only',
+    variables: {
+      userId: `${user?.id}`,
+    },
+  });
+  const [getUserMonitors] = useLazyQuery(GET_USER_MONITORS, {
+    fetchPolicy: 'network-only',
+    variables: {
+      userId: `${user?.id}`,
+    },
+  });
+
+  const [autoRefresh, { data: refreshData }] = useLazyQuery(
+    ENABLE_AUTO_REFRESH,
+    {
+      fetchPolicy: 'network-only',
+    }
+  );
+
+  const storageViewItem: string = getLocalStorageItem('view');
+  const isRefreshed: boolean = JSON.parse(getLocalStorageItem('refresh'));
+  const hasActiveMonitors: boolean = some(monitors, { active: true });
+
+  const refreshMonitors = async () => {
+    if (hasActiveMonitors) {
+      setMonitorState((prevState: IMonitorState) => ({
+        ...prevState,
+        autoRefreshLoading: true,
+      }));
+      const result = await getUserMonitors();
+      if (result) {
+        monitorsRef.current = result.data.getUserMonitors.monitors;
+        setMonitors(result.data.getUserMonitors.monitors);
+        setMonitorState((prevState: IMonitorState) => ({
+          ...prevState,
+          autoRefreshLoading: false,
+        }));
+      }
+    } else {
+      showErrorToast('There are no active monitors to refresh.');
+    }
+  };
+
+  const enableAutoRefresh = async () => {
+    try {
+      if (hasActiveMonitors) {
+        await autoRefresh({
+          variables: {
+            userId: `${user?.id}`,
+            refresh: !isRefreshed,
+          },
+        });
+        setMonitorState((prevState: IMonitorState) => ({
+          ...prevState,
+          enableRefresh: !isRefreshed,
+        }));
+        setLocalStorageItem('refresh', JSON.stringify(!isRefreshed));
+      } else {
+        showErrorToast('There are no active monitors to refresh.');
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      showErrorToast('Error enabling auto refresh.');
+    }
+  };
+
+  const closeUptimeModal = () => {
+    setMonitorState({
+      ...monitorState,
+      showModal: false,
+    });
+  };
+
+  useEffect(() => {
+    if (!storageViewItem) {
+      setLocalStorageItem('view', JSON.stringify('box'));
+    }
+
+    if (isRefreshed === null) {
+      setLocalStorageItem('refresh', JSON.stringify(false));
+      setMonitorState((prevState: IMonitorState) => ({
+        ...prevState,
+        enableRefresh: false,
+      }));
+    } else {
+      setMonitorState((prevState: IMonitorState) => ({
+        ...prevState,
+        enableRefresh: isRefreshed,
+      }));
+    }
+
+    setView(storageViewItem || 'box');
+  }, [storageViewItem, setView, setMonitorState, isRefreshed]);
+
+  useEffect(() => {
+    if (data?.getUserMonitors) {
+      monitorsRef.current = data.getUserMonitors.monitors;
+      setMonitors(data.getUserMonitors.monitors);
+    }
+
+    if (refreshData?.autoRefresh) {
+      setLocalStorageItem(
+        'refresh',
+        JSON.stringify(refreshData.autoRefresh.refresh)
+      );
+      setMonitorState((prevState: IMonitorState) => ({
+        ...prevState,
+        enableRefresh: refreshData.autoRefresh.refresh,
+      }));
+    }
+  }, [data, refreshData, setMonitors, setMonitorState]);
+
+  return {
+    monitorState,
+    monitors,
+    limit: { start: 0, end: 10 },
+    isRefreshed,
+    autoMonitorsRef,
+    monitorsRef,
+    openModal: false,
+    view,
+    loading,
+    setView,
+    setMonitors,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    updateLimit: (newLimit: IPagination) => {},
+    setMonitorState,
+    refreshMonitors,
+    enableAutoRefresh,
+    closeUptimeModal,
+  };
+};
