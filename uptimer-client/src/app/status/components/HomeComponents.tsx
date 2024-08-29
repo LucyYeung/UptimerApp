@@ -1,11 +1,13 @@
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, FormEvent, SetStateAction } from 'react';
 
 import {
   IMonitorDocument,
   IMonitorState,
   IPagination,
 } from '@/interfaces/monitor.interface';
+import { setLocalStorageItem } from '@/utils/utils';
 import clsx from 'clsx';
+import { filter, toLower } from 'lodash';
 import { FaBorderAll, FaPause, FaPlay } from 'react-icons/fa';
 
 import Button from '@/components/Button';
@@ -34,7 +36,13 @@ export const renderButtons = (
 
 export const renderRefreshButtons = (
   view: string,
-  isRefreshed: boolean
+  isRefreshed: boolean,
+  monitorsRef: IMonitorDocument[],
+  monitors: IMonitorDocument[],
+  setView: Dispatch<SetStateAction<string>>,
+  setMonitors: Dispatch<SetStateAction<IMonitorDocument[]>>,
+  refreshMonitors: () => void,
+  enableAutoRefresh: () => void
 ): JSX.Element => {
   return (
     <div className='flex h-44 flex-col items-start justify-start lg:h-20 lg:flex-row lg:items-center lg:justify-between'>
@@ -47,16 +55,27 @@ export const renderRefreshButtons = (
             'bg-green-400': !isRefreshed,
           }
         )}
+        onClick={refreshMonitors}
       />
       <div className='flex flex-col justify-start gap-3 lg:w-full lg:flex-row lg:justify-end'>
-        <div className='flex min-w-52 cursor-pointer items-center gap-2 rounded bg-[#9DFFE4] px-2'>
+        <div
+          className='flex min-w-52 cursor-pointer items-center gap-2 rounded bg-[#9DFFE4] px-2'
+          onClick={() => {
+            const item = view === 'box' ? 'list' : 'box';
+            setLocalStorageItem('view', JSON.stringify(item));
+            setView(item);
+          }}
+        >
           <FaBorderAll />
           <Button
             label={view === 'box' ? 'List View' : 'Box View'}
             className='px-4 py-2 text-base font-bold lg:p-0'
           />
         </div>
-        <div className='flex min-w-52 cursor-pointer items-center gap-2 rounded bg-[#9DFFE4] px-2'>
+        <div
+          className='flex min-w-52 cursor-pointer items-center gap-2 rounded bg-[#9DFFE4] px-2'
+          onClick={enableAutoRefresh}
+        >
           {!isRefreshed ? <FaPlay /> : <FaPause />}
           <Button
             label={
@@ -65,7 +84,19 @@ export const renderRefreshButtons = (
             className='px-4 py-2 text-base font-bold lg:p-0'
           />
         </div>
-        <div className='w-full lg:w-[30%]'>
+        <div
+          className='w-full lg:w-[30%]'
+          onChange={(event: FormEvent) => {
+            const value: string = (event.target as HTMLInputElement).value;
+            const results: IMonitorDocument[] = filter(
+              monitors,
+              (monitor) =>
+                toLower(monitor.name).includes(value) ||
+                toLower(monitor.type).includes(value)
+            );
+            setMonitors(!value || !results.length ? monitorsRef : results);
+          }}
+        >
           <TextInput
             type='text'
             name='search'
@@ -82,7 +113,9 @@ export const renderTableAndPagination = (
   view: string,
   limit: IPagination,
   autoRefreshLoading: boolean,
-  monitors: IMonitorDocument[]
+  monitors: IMonitorDocument[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  updateLimit: (newLimit: IPagination) => void
 ): JSX.Element => {
   return (
     <div className='my-4'>
