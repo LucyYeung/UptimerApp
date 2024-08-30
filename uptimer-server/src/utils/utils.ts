@@ -148,8 +148,10 @@ export const uptimePercentage = (heartbeats: IHeartbeat[]): number => {
   const downtimeHeatbeats = heartbeats.filter(
     (heartbeat) => heartbeat.status === 1,
   ).length;
-  return Math.round(
-    ((totalHeartbeats - downtimeHeatbeats) / totalHeartbeats) * 100,
+  return (
+    Math.round(
+      ((totalHeartbeats - downtimeHeatbeats) / totalHeartbeats) * 100,
+    ) || 0
   );
 };
 
