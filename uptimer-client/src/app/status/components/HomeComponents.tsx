@@ -11,6 +11,7 @@ import { filter, toLower } from 'lodash';
 import { FaBorderAll, FaCheckCircle, FaPause, FaPlay } from 'react-icons/fa';
 
 import Button from '@/components/Button';
+import Paginate from '@/components/Paginate';
 import TextInput from '@/components/TextInput';
 
 import HomeButtonGroup from './HomeButtonGroup';
@@ -135,20 +136,29 @@ export const renderTableAndPagination = (
   updateLimit: (newLimit: IPagination) => void
 ): JSX.Element => {
   return (
-    <div className='my-4'>
-      {view === 'box' ? (
-        <HomeTable
-          monitors={monitors}
-          limit={limit}
-          autoRefreshLoading={autoRefreshLoading}
-        />
-      ) : (
-        <HomeGrid
-          monitors={monitors}
-          limit={limit}
-          autoRefreshLoading={autoRefreshLoading}
+    <>
+      <div className='my-4'>
+        {view === 'box' ? (
+          <HomeTable
+            monitors={monitors}
+            limit={limit}
+            autoRefreshLoading={autoRefreshLoading}
+          />
+        ) : (
+          <HomeGrid
+            monitors={monitors}
+            limit={limit}
+            autoRefreshLoading={autoRefreshLoading}
+          />
+        )}
+      </div>
+      {monitors.length > 0 && (
+        <Paginate
+          defaultLimit={limit.end}
+          length={monitors.length}
+          updateLimit={updateLimit}
         />
       )}
-    </div>
+    </>
   );
 };

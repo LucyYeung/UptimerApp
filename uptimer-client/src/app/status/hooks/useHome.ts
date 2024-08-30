@@ -6,7 +6,6 @@ import { MonitorContext } from '@/context/MonitorContext';
 import {
   IMonitorDocument,
   IMonitorState,
-  IPagination,
   IUseHome,
 } from '@/interfaces/monitor.interface';
 import {
@@ -14,6 +13,7 @@ import {
   GET_USER_MONITORS,
   MONITORS_UPDATED,
 } from '@/queries/status';
+import { usePagination } from '@/utils/usePagination';
 import {
   getLocalStorageItem,
   setLocalStorageItem,
@@ -36,6 +36,7 @@ export const useHome = (): IUseHome => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams.toString());
+  const [limit, updateLimit] = usePagination(0, 10);
 
   const [view, setView] = useState<string>('');
   const monitorsRef = useRef<IMonitorDocument[]>([]);
@@ -209,7 +210,7 @@ export const useHome = (): IUseHome => {
   return {
     monitorState,
     monitors,
-    limit: { start: 0, end: 10 },
+    limit,
     isRefreshed,
     autoMonitorsRef,
     monitorsRef,
@@ -218,8 +219,7 @@ export const useHome = (): IUseHome => {
     loading,
     setView,
     setMonitors,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    updateLimit: (newLimit: IPagination) => {},
+    updateLimit,
     setMonitorState,
     refreshMonitors,
     enableAutoRefresh,
