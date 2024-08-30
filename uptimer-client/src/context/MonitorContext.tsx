@@ -8,17 +8,19 @@ import {
   useReducer,
 } from 'react';
 
+import { IMonitorDocument } from '@/interfaces/monitor.interface';
 import { INotification } from '@/interfaces/notification.interface';
 import { IUser, InitialUpdateType } from '@/interfaces/user.interface';
 
 export interface StateProps {
   user: IUser | null;
   notifications: INotification[];
+  monitor: IMonitorDocument | null;
 }
 
 export interface DispatchProps {
   type: string;
-  payload: string | boolean | InitialUpdateType | null;
+  payload: string | boolean | InitialUpdateType | IMonitorDocument | null;
 }
 
 interface Props {
@@ -33,6 +35,7 @@ interface MonitorContextType {
 const initialValues: StateProps = {
   user: null,
   notifications: [],
+  monitor: null,
 };
 
 export const MonitorContext = createContext<MonitorContextType>({
@@ -43,6 +46,7 @@ export const MonitorContext = createContext<MonitorContextType>({
 const mainReducer = (state: StateProps, action: DispatchProps) => ({
   user: stateReducer(state, action).user,
   notifications: stateReducer(state, action).notifications,
+  monitor: stateReducer(state, action).monitor,
 });
 
 export const MonitorProvider = ({ children }: Props): ReactElement => {
@@ -69,6 +73,12 @@ const stateReducer = (state: StateProps, action: DispatchProps) => {
       return {
         ...state,
         user: action.payload as IUser,
+      };
+    }
+    case 'monitor': {
+      return {
+        ...state,
+        monitor: action.payload as IMonitorDocument,
       };
     }
     default:

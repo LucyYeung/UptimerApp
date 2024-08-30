@@ -1,5 +1,8 @@
-import { FC, ReactElement } from 'react';
+import { FC, ReactElement, useContext } from 'react';
 
+import { useRouter, useSearchParams } from 'next/navigation';
+
+import { MonitorContext } from '@/context/MonitorContext';
 import {
   HomeTableProps,
   IMonitorDocument,
@@ -13,7 +16,6 @@ import HealthBar from '@/components/HealthBar';
 
 import HomeTableBtnGroup from './HomeTableBtnGroup';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DEFAULT_DURATION = 24;
 
 const HomeTable: FC<HomeTableProps> = ({
@@ -21,9 +23,18 @@ const HomeTable: FC<HomeTableProps> = ({
   limit,
   autoRefreshLoading,
 }): ReactElement => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { dispatch } = useContext(MonitorContext);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const navigateToStatusPage = (monitor: IMonitorDocument): void => {
     // 24 is the default duration
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('active', JSON.stringify(monitor.active));
+    router.push(
+      `/uptime/view/${monitor.type}/${monitor.id}/${DEFAULT_DURATION}?${params}`
+    );
+    dispatch({ type: 'monitor', payload: monitor });
   };
 
   return (

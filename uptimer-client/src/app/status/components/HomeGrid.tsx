@@ -1,5 +1,8 @@
-import { FC, ReactElement, ReactNode } from 'react';
+import { FC, ReactElement, ReactNode, useContext } from 'react';
 
+import { useRouter, useSearchParams } from 'next/navigation';
+
+import { MonitorContext } from '@/context/MonitorContext';
 import {
   HomeTableProps,
   IMonitorDocument,
@@ -12,7 +15,6 @@ import ResponseChart from '@/components/ResponseChart';
 
 import HomeTableBtnGroup from './HomeTableBtnGroup';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DEFAULT_DURATION = 24;
 
 const HomeGrid: FC<HomeTableProps> = ({
@@ -20,8 +22,19 @@ const HomeGrid: FC<HomeTableProps> = ({
   limit,
   autoRefreshLoading,
 }): ReactElement => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const navigateToStatusPage = (monitor: IMonitorDocument): void => {};
+  const { dispatch } = useContext(MonitorContext);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const navigateToStatusPage = (monitor: IMonitorDocument): void => {
+    // 24 is the default duration
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('active', JSON.stringify(monitor.active));
+    router.push(
+      `/uptime/view/${monitor.type}/${monitor.id}/${DEFAULT_DURATION}?${params}`
+    );
+    dispatch({ type: 'monitor', payload: monitor });
+  };
 
   const monitorIcon = (monitor: IMonitorDocument): JSX.Element => {
     if (monitor.active && monitor.status === 0) {

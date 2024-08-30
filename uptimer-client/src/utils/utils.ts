@@ -1,3 +1,4 @@
+import { IHeartbeat } from '@/interfaces/monitor.interface';
 import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 
@@ -126,4 +127,19 @@ export const timeFromNow = (date: string) => {
     return 'None';
   }
   return dayjs(new Date(JSON.parse(date))).fromNow();
+};
+
+export const uptimePercentage = (heartbeats: IHeartbeat[]): number => {
+  if (!heartbeats) {
+    return 0;
+  }
+  const totalHeartbeats: number = heartbeats.length;
+  const downtimeHeartbeats: number = heartbeats.filter(
+    (heartbeat: IHeartbeat) => heartbeat.status === 1
+  ).length;
+  return (
+    Math.round(
+      ((totalHeartbeats - downtimeHeartbeats) / totalHeartbeats) * 100
+    ) || 0
+  );
 };
