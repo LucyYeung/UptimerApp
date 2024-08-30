@@ -62,6 +62,13 @@ export const renderRefreshButtons = (
   refreshMonitors: () => void,
   enableAutoRefresh: () => void
 ): JSX.Element => {
+  const hasActiveMonitors = filter(monitors, { active: true }).length > 0;
+  let refreshed = isRefreshed;
+  if (refreshed && !hasActiveMonitors) {
+    refreshed = false;
+    setLocalStorageItem('refresh', JSON.stringify(false));
+  }
+
   return (
     <div className='flex h-44 flex-col items-start justify-start lg:h-20 lg:flex-row lg:items-center lg:justify-between'>
       <Button
@@ -69,8 +76,8 @@ export const renderRefreshButtons = (
         className={clsx(
           'mb-3 inline-flex cursor-pointer items-center rounded px-4 py-2 text-base font-medium text-white lg:mb-0',
           {
-            'pointer-events-none cursor-none bg-green-200': isRefreshed,
-            'bg-green-400': !isRefreshed,
+            'pointer-events-none cursor-none bg-green-200': refreshed,
+            'bg-green-400': !refreshed,
           }
         )}
         onClick={refreshMonitors}
@@ -94,11 +101,9 @@ export const renderRefreshButtons = (
           className='flex min-w-52 cursor-pointer items-center gap-2 rounded bg-[#9DFFE4] px-2'
           onClick={enableAutoRefresh}
         >
-          {!isRefreshed ? <FaPlay /> : <FaPause />}
+          {!refreshed ? <FaPlay /> : <FaPause />}
           <Button
-            label={
-              !isRefreshed ? 'Enable Auto Refresh' : 'Disable Auto Refresh'
-            }
+            label={!refreshed ? 'Enable Auto Refresh' : 'Disable Auto Refresh'}
             className='px-4 py-2 text-base font-bold lg:p-0'
           />
         </div>
