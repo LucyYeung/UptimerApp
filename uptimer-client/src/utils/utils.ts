@@ -1,6 +1,11 @@
 import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 
+export interface IFrequency {
+  value: number;
+  name: string;
+}
+
 export const showSuccessToast = (message: string) => {
   toast.success(message, {
     position: 'bottom-right',
