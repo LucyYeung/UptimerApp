@@ -2,6 +2,8 @@
 
 import { FC, ReactElement } from 'react';
 
+import MonitorSelectionModal from '@/components/MonitorSelectionModal';
+
 import { useHome } from '../hooks/useHome';
 import {
   renderButtons,
@@ -19,7 +21,6 @@ const Home: FC = (): ReactElement => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     autoMonitorsRef,
     monitorsRef,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     openModal,
     view,
     loading,
@@ -29,41 +30,50 @@ const Home: FC = (): ReactElement => {
     setMonitorState,
     refreshMonitors,
     enableAutoRefresh,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     closeUptimeModal,
   } = useHome();
 
   return (
-    <div className='relative m-auto h-screen min-h-screen px-6 xl:container md:px-12 lg:px-6'>
-      {!loading && monitors.length > 0 ? (
-        <>
-          {renderButtons(monitors, monitorState, setMonitorState)}
-          {renderRefreshButtons(
-            view,
-            isRefreshed!,
-            monitorsRef.current,
-            monitors,
-            setView,
-            setMonitors,
-            () => refreshMonitors(),
-            () => enableAutoRefresh()
-          )}
-          {renderTableAndPagination(
-            view,
-            limit,
-            monitorState.autoRefreshLoading,
-            monitors,
-            updateLimit
-          )}
-        </>
-      ) : (
-        <>
-          {!loading &&
-            !monitors.length &&
-            renderCreateButton(monitorState, setMonitorState)}
-        </>
+    <>
+      {(monitorState.showModal || openModal) && (
+        <MonitorSelectionModal
+          onClose={() => {
+            setMonitorState({ ...monitorState, showModal: false });
+            closeUptimeModal();
+          }}
+        />
       )}
-    </div>
+      <div className='relative m-auto h-screen min-h-screen px-6 xl:container md:px-12 lg:px-6'>
+        {!loading && monitors.length > 0 ? (
+          <>
+            {renderButtons(monitors, monitorState, setMonitorState)}
+            {renderRefreshButtons(
+              view,
+              isRefreshed!,
+              monitorsRef.current,
+              monitors,
+              setView,
+              setMonitors,
+              () => refreshMonitors(),
+              () => enableAutoRefresh()
+            )}
+            {renderTableAndPagination(
+              view,
+              limit,
+              monitorState.autoRefreshLoading,
+              monitors,
+              updateLimit
+            )}
+          </>
+        ) : (
+          <>
+            {!loading &&
+              !monitors.length &&
+              renderCreateButton(monitorState, setMonitorState)}
+          </>
+        )}
+      </div>
+    </>
   );
 };
 
