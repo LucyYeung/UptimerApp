@@ -1,13 +1,21 @@
 import { FC } from 'react';
 
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { FaLock, FaRegClock, FaTv, FaUser } from 'react-icons/fa';
 
 import SidebarMenu from './SidebarMenu';
 
 const Sidebar: FC<{ type: string }> = ({ type }) => {
-  const openUptimeModal = () => {};
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const openUptimeModal = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('open', JSON.stringify(true));
+    router.push(`/status?${params}`);
+  };
 
   return (
     <div className='h-[90%] w-full'>

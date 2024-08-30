@@ -1,5 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 
+import { useRouter, useSearchParams } from 'next/navigation';
+
 import { MonitorContext } from '@/context/MonitorContext';
 import {
   IMonitorDocument,
@@ -30,6 +32,11 @@ export const useHome = (): IUseHome => {
     enableRefresh: false,
     autoRefreshLoading: false,
   });
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams.toString());
+
   const [view, setView] = useState<string>('');
   const monitorsRef = useRef<IMonitorDocument[]>([]);
   const autoMonitorsRef = useRef<IMonitorDocument[]>([]);
@@ -87,6 +94,8 @@ export const useHome = (): IUseHome => {
 
   const storageViewItem: string = getLocalStorageItem('view');
   const isRefreshed: boolean = JSON.parse(getLocalStorageItem('refresh'));
+  const openModal: boolean = JSON.parse(`${params.get('open')}`);
+
   const hasActiveMonitors: boolean = some(monitors, { active: true });
 
   const refreshMonitors = async () => {
@@ -133,10 +142,8 @@ export const useHome = (): IUseHome => {
   };
 
   const closeUptimeModal = () => {
-    setMonitorState({
-      ...monitorState,
-      showModal: false,
-    });
+    params.delete('open');
+    router.push(`status?${params}`);
   };
 
   useEffect(() => {
@@ -206,7 +213,7 @@ export const useHome = (): IUseHome => {
     isRefreshed,
     autoMonitorsRef,
     monitorsRef,
-    openModal: false,
+    openModal,
     view,
     loading,
     setView,
