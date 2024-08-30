@@ -8,7 +8,7 @@ import {
 import { setLocalStorageItem } from '@/utils/utils';
 import clsx from 'clsx';
 import { filter, toLower } from 'lodash';
-import { FaBorderAll, FaPause, FaPlay } from 'react-icons/fa';
+import { FaBorderAll, FaCheckCircle, FaPause, FaPlay } from 'react-icons/fa';
 
 import Button from '@/components/Button';
 import TextInput from '@/components/TextInput';
@@ -16,6 +16,23 @@ import TextInput from '@/components/TextInput';
 import HomeButtonGroup from './HomeButtonGroup';
 import HomeGrid from './HomeGrid';
 import HomeTable from './HomeTable';
+
+export const renderCreateButton = (
+  monitorState: IMonitorState,
+  setMonitorState: Dispatch<SetStateAction<IMonitorState>>
+): JSX.Element => {
+  return (
+    <div className='flex h-1/2 flex-col items-center justify-center'>
+      <FaCheckCircle className='text-[60px] text-green-400' />
+      <p className='py-2 text-base lg:text-lg'>You have no uptime tests.</p>
+      <Button
+        label='New Uptime Test'
+        className='inline-flex rounded bg-green-400 px-4 py-2 text-base font-medium text-white md:items-center'
+        onClick={() => setMonitorState({ ...monitorState, showModal: true })}
+      />
+    </div>
+  );
+};
 
 export const renderButtons = (
   monitors: IMonitorDocument[],

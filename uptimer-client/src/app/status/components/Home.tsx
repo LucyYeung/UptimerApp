@@ -5,6 +5,7 @@ import { FC, ReactElement } from 'react';
 import { useHome } from '../hooks/useHome';
 import {
   renderButtons,
+  renderCreateButton,
   renderRefreshButtons,
   renderTableAndPagination,
 } from './HomeComponents';
@@ -56,7 +57,11 @@ const Home: FC = (): ReactElement => {
           )}
         </>
       ) : (
-        <>{!loading && !monitors.length && <>New Uptime Test</>}</>
+        <>
+          {!loading &&
+            !monitors.length &&
+            renderCreateButton(monitorState, setMonitorState)}
+        </>
       )}
     </div>
   );
