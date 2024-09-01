@@ -11,6 +11,7 @@ import {
   renderRefreshButtons,
   renderTableAndPagination,
 } from './HomeComponents';
+import HomeSkeleton from './HomeSkeleton';
 
 const Home: FC = (): ReactElement => {
   const {
@@ -44,6 +45,7 @@ const Home: FC = (): ReactElement => {
         />
       )}
       <div className='relative m-auto h-screen min-h-screen px-6 xl:container md:px-12 lg:px-6'>
+        {loading && <HomeSkeleton />}
         {!loading && monitors.length > 0 ? (
           <>
             {renderButtons(monitors, monitorState, setMonitorState)}
