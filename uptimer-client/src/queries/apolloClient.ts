@@ -15,11 +15,11 @@ import { DocumentNode, Kind, OperationTypeNode } from 'graphql';
 import { createClient } from 'graphql-ws';
 
 const httpUrl: string =
-  process.env.NODE_ENV === 'development'
+  process.env.NEXT_PUBLIC_NODE_ENV === 'development'
     ? 'http://localhost:5000/graphql'
     : `${process.env.NEXT_PUBLIC_HTTP_SERVER_URL}/graphql`;
 const wsUrl: string =
-  process.env.NODE_ENV === 'development'
+  process.env.NEXT_PUBLIC_NODE_ENV === 'development'
     ? 'ws://localhost:5000/graphql'
     : `${process.env.NEXT_PUBLIC_WS_SERVER_URL}/graphql`;
 
